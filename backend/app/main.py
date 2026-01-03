@@ -30,6 +30,12 @@ class EventCreate(BaseModel):
     longitude: float
     continent: Optional[str] = None
     period: Optional[str] = None
+    
+class PopulateOptions(BaseModel):
+    mode: str
+    continents: List[str]
+    start_year: int
+    end_year: int
 
 # --- LÓGICA DE NEGÓCIO (Reutilizável) ---
 def calculate_period(year: int) -> str:
@@ -50,19 +56,32 @@ def update_population_status(message: str):
     population_state["message"] = message
     print(f"STATUS: {message}")
 
-def run_population_logic(mode: str):
-    print(f"--- INICIANDO POPULAÇÃO ({mode}) ---")
+def run_population_logic(options: PopulateOptions):
+    print(f"--- INICIANDO: {options.mode} | {options.continents} ---")
     try:
-        if mode == "fast":
-            update_population_status("⚡ Iniciando Modo Turbo...")
-            populate_final.run_fast_mode(status_callback=update_population_status)
+        # Passamos os argumentos novos!
+        if options.mode == "fast":
+            update_population_status("⚡ Iniciando Modo Turbo Personalizado...")
+            populate_final.run_fast_mode(
+                status_callback=update_population_status,
+                target_continents=options.continents,
+                start_year=options.start_year,
+                end_year=options.end_year
+            )
         else:
-            update_population_status("🔍 Iniciando Varredura Detalhada...")
-            populate_final.run_detailed_mode(status_callback=update_population_status)
-        
-        update_population_status("🧹 Removendo duplicatas...")
+            # Se quiser implementar varredura real depois, usa a mesma lógica
+            update_population_status("🔍 Iniciando Varredura...")
+            populate_final.run_detailed_mode(
+                status_callback=update_population_status,
+                target_continents=options.continents,
+                start_year=options.start_year,
+                end_year=options.end_year
+            )
+
+        update_population_status("🧹 Limpando duplicatas...")
         deduplicate_smart.deduplicate_fuzzy()
         population_state["message"] = "✅ Concluído!"
+
     except Exception as e:
         print(f"ERRO: {e}")
         population_state["message"] = f"Erro: {str(e)}"
@@ -72,12 +91,16 @@ def run_population_logic(mode: str):
 # --- ROTAS ---
 
 @app.post("/populate")
-def trigger_populate(mode: str = "fast", background_tasks: BackgroundTasks = None):
+def trigger_populate(options: PopulateOptions, background_tasks: BackgroundTasks):
     if population_state["is_running"]:
-        return {"status": "busy", "message": "Já rodando."}
+        return {"status": "busy", "message": "Já existe um processo rodando."}
+
     population_state["is_running"] = True
-    population_state["message"] = f"Iniciando {mode}..."
-    background_tasks.add_task(run_population_logic, mode)
+    population_state["message"] = f"Configurando {options.mode}..."
+
+    # Passa as opções completas para a função
+    background_tasks.add_task(run_population_logic, options)
+
     return {"status": "started"}
 
 @app.get("/populate/status")

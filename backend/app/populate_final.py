@@ -1,42 +1,27 @@
 import requests
-import sys
 import time
 import json
 import os
-from urllib.parse import unquote
+import re
 
-# ==============================================================================
-# CONFIGURAÇÕES GERAIS
-# ==============================================================================
 API_URL = "http://localhost:8000/events"
 WIKIDATA_URL = "https://query.wikidata.org/sparql"
 
 HEADERS = {
-    "User-Agent": "AtlasHistoricoBot/12.0 (Full Dual Mode)",
+    "User-Agent": "AtlasHistoricoBot/15.0 (Full Content Mode)",
     "Accept": "application/json"
 }
 
-CONTINENT_IDS = [
-    ("Q18", "América do Sul"),
-    ("Q46", "Europa"),
-    ("Q49", "América do Norte"),
-    ("Q15", "África"),
-    ("Q48", "Ásia"),
-]
-
-# Caixas delimitadoras para o Modo Varredura (Detailed)
-# Formato: (Nome, Lon_Min, Lat_Min, Lon_Max, Lat_Max)
-CONTINENT_BOXES = [
-    ("América do Sul", -81.0, -56.0, -34.0, 13.0),
-    ("Europa", -10.0, 36.0, 40.0, 70.0),
-    ("América do Norte", -160.0, 15.0, -50.0, 72.0),
-    ("Ásia", 40.0, 10.0, 140.0, 55.0),
-    ("África", -18.0, -35.0, 52.0, 37.0)
-]
-
-# ==============================================================================
-# FUNÇÕES AUXILIARES
-# ==============================================================================
+# Mapa de Continentes para IDs
+CONTINENT_MAP = {
+    "América do Sul": "Q18",
+    "Europa": "Q46",
+    "América do Norte": "Q49",
+    "África": "Q15",
+    "Ásia": "Q48",
+    "Oceania": "Q538",
+    "Antártida": "Q51"
+}
 
 def determine_period(year):
     if year < -4000: return "Pré-História"
@@ -46,199 +31,183 @@ def determine_period(year):
     return "Idade Contemporânea"
 
 def get_wiki_summary(article_url):
-    """Busca o resumo do artigo na API REST da Wikipedia"""
+    """
+    Busca o resumo introdutório da Wikipédia.
+    Nota: A API 'summary' traz o primeiro parágrafo (intro), que geralmente é
+    o ideal para um popup de mapa. Trazer o artigo inteiro HTML quebraria o layout.
+    """
     if not article_url: return None
     try:
+        # Pega o slug do título (ex: Guerra_dos_Farrapos)
         title = article_url.split("/wiki/")[-1]
+        
+        # Detecta idioma
         lang = "pt" if "pt.wikipedia" in article_url else "en"
+        
+        # Endpoint oficial de resumo
         api_url = f"https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}"
-        r = requests.get(api_url, headers=HEADERS, timeout=2)
+        
+        r = requests.get(api_url, headers=HEADERS, timeout=4) # Aumentei timeout pra 4s
         if r.status_code == 200:
-            return r.json().get("extract")
-    except: return None
+            data = r.json()
+            # extract = Texto puro | description = Subtítulo curto
+            return data.get("extract") 
+    except Exception as e:
+        print(f"Erro Wiki ({article_url}): {e}")
+        return None
     return None
 
 def populate_from_json_file(status_callback=None):
-    if status_callback: status_callback("📂 Lendo arquivo manual...")
+    if status_callback: status_callback("📂 Inserindo dados manuais (JSON)...")
     file_path = os.path.join(os.path.dirname(__file__), "manual_events.json")
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             manual_events = json.load(f)
-        count = 0
         for evt in manual_events:
             try:
-                # Garante integridade dos dados manuais
+                # Garante que o manual não seja apagável pelo processo de limpeza
                 evt['is_manual'] = False 
                 evt['period'] = determine_period(int(evt["year_start"]))
                 requests.post(API_URL, json=evt)
-                count += 1
             except: pass
-        if status_callback: status_callback(f"✅ JSON Base: {count} eventos carregados.")
     except: pass
 
 # ==============================================================================
-# 🚀 MODO TURBO (Busca por Categorias: Guerras, Tratados, etc)
-# ==============================================================================
-def fetch_massive_fast(continent_id, continent_name, status_callback):
-    limit = 3500 
-    
-    msg = f"🚀 TURBO: Buscando Guerras e Eventos em {continent_name}..."
-    print(msg)
-    if status_callback: status_callback(msg)
-
-    # Q1190554=Evento Histórico, Q198=Guerra, Q178=Batalha, Q131967=Tratado, Q1023929=Revolução
-    query = f"""
-    SELECT DISTINCT ?item ?itemLabel ?itemDescription ?date ?coord ?article WHERE {{
-      VALUES ?type {{ wd:Q1190554 wd:Q198 wd:Q178 wd:Q131967 wd:Q1023929 wd:Q4830453 }}
-      
-      ?item wdt:P31/wdt:P279* ?type .
-      ?item wdt:P30 wd:{continent_id} .
-      ?item wdt:P585 ?date .
-      ?item wdt:P625 ?coord .
-
-      OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "pt" ; schema:isPartOf <https://pt.wikipedia.org/> . }}
-      OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "en" ; schema:isPartOf <https://en.wikipedia.org/> . }}
-
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "pt,en". }}
-    }}
-    ORDER BY DESC(?date)
-    LIMIT {limit}
-    """
-    
-    try:
-        process_query_results(query, continent_name, status_callback)
-    except Exception as e:
-        print(f"Erro Turbo em {continent_name}: {e}")
-
-# ==============================================================================
-# 🌍 MODO VARREDURA/DETALHADO (Busca por Coordenada e Data Recursiva)
-# ==============================================================================
-def fetch_recursive(region_name, box, start_year, end_year, limit=50, status_callback=None, depth=0):
-    # Condição de parada para não ficar infinito
-    if (end_year - start_year) < 5: return
-
-    lon_sw, lat_sw, lon_ne, lat_ne = box
-    start_date = f"{start_year}-01-01T00:00:00Z"
-    end_date = f"{end_year}-12-31T23:59:59Z"
-    
-    if depth == 0 and status_callback:
-        status_callback(f"🔍 Varredura: {region_name} ({start_year} a {end_year})...")
-
-    # Query Espacial
-    query = f"""
-    SELECT DISTINCT ?item ?itemLabel ?itemDescription ?date ?coord ?article WHERE {{
-      SERVICE wikibase:box {{
-         ?item wdt:P625 ?coord .
-         bd:serviceParam wikibase:cornerSouthWest "Point({lon_sw} {lat_sw})"^^geo:wktLiteral .
-         bd:serviceParam wikibase:cornerNorthEast "Point({lon_ne} {lat_ne})"^^geo:wktLiteral .
-      }}
-      
-      # Qualquer coisa que seja subtipo de Evento Histórico
-      ?item wdt:P31/wdt:P279* wd:Q1190554 . 
-      
-      OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "pt" ; schema:isPartOf <https://pt.wikipedia.org/> . }}
-      OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "en" ; schema:isPartOf <https://en.wikipedia.org/> . }}
-      
-      ?item wdt:P585 ?date .
-      FILTER(?date >= "{start_date}"^^xsd:dateTime && ?date <= "{end_date}"^^xsd:dateTime)
-      
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "pt,en". }}
-    }}
-    LIMIT {limit}
-    """
-    
-    try:
-        # Se a query falhar ou retornar MAX resultados (significa que tem mais coisas nesse período), dividimos o tempo
-        has_results, count = process_query_results(query, region_name, None) # Passa None no callback pra não spammar
-        
-        # Se encheu o limite (50), divide o tempo em dois e tenta de novo (Recursividade)
-        if count >= limit:
-            time.sleep(1)
-            mid = (start_year + end_year) // 2
-            fetch_recursive(region_name, box, start_year, mid, limit, status_callback, depth + 1)
-            fetch_recursive(region_name, box, mid + 1, end_year, limit, status_callback, depth + 1)
-            
-    except: pass
-
-# ==============================================================================
-# PROCESSADOR COMUM (Evita duplicar código)
+# PROCESSADOR DE QUERY
 # ==============================================================================
 def process_query_results(query, region_name, status_callback):
-    r = requests.get(WIKIDATA_URL, params={'query': query, 'format': 'json'}, headers=HEADERS, timeout=45)
-    
-    if r.status_code == 200:
-        items = r.json()['results']['bindings']
-        count = 0
-        total = len(items)
+    try:
+        # Timeout alto no request do SPARQL pois a query é pesada
+        r = requests.get(WIKIDATA_URL, params={'query': query, 'format': 'json'}, headers=HEADERS, timeout=90)
         
-        for i, item in enumerate(items):
-            try:
-                name = item.get("itemLabel", {}).get("value")
-                if not name or (name.startswith("Q") and any(c.isdigit() for c in name)): continue
-                
-                date_str = item.get("date", {}).get("value", "")
-                coord_str = item.get("coord", {}).get("value", "")
-                article_url = item.get("article", {}).get("value", "")
-                
-                if not date_str or not coord_str: continue
-                
-                year = int(date_str[0:5]) if date_str.startswith('-') else int(date_str[0:4])
-                c_raw = coord_str.replace("Point(", "").replace(")", "").split(" ")
-                
-                # Busca texto
-                full_content = None
-                if article_url:
-                    # Só busca texto se tiver status_callback (Modo Turbo) ou aleatoriamente para não travar Varredura
-                    if status_callback and i % 15 == 0: 
-                        status_callback(f"🌍 {region_name}: Processando {i}/{total}...")
+        if r.status_code == 200:
+            items = r.json()['results']['bindings']
+            total = len(items)
+            count = 0
+            
+            if total == 0:
+                print(f"⚠️ Zero resultados para {region_name}.")
+            
+            for i, item in enumerate(items):
+                try:
+                    name = item.get("itemLabel", {}).get("value")
                     
-                    if "guerra" in name.lower() or "batalha" in name.lower() or "revolução" in name.lower() or status_callback:
-                         full_content = get_wiki_summary(article_url)
+                    # --- FILTROS DE SEGURANÇA ---
+                    if not name: continue
+                    # Filtra IDs técnicos (Q12345) que vem sem label
+                    if name.startswith("Q") and any(c.isdigit() for c in name) and " " not in name: continue
+                    # Anti-Eclipse (Redundância)
+                    if "eclipse" in name.lower(): continue
+                    
+                    date_str = item.get("date", {}).get("value", "")
+                    coord_str = item.get("coord", {}).get("value", "")
+                    article_url = item.get("article", {}).get("value", "")
+                    
+                    if not date_str or not coord_str: continue
+                    
+                    year = int(date_str[0:5]) if date_str.startswith('-') else int(date_str[0:4])
+                    c_raw = coord_str.replace("Point(", "").replace(")", "").split(" ")
+                    
+                    # --- BUSCA DE CONTEÚDO (CORRIGIDO) ---
+                    full_content = None
+                    
+                    # Atualiza status visual a cada 10 itens
+                    if status_callback and i % 10 == 0:
+                         status_callback(f"🌍 {region_name}: Processando {i}/{total}...")
+                    
+                    # AGORA: Se tem link, busca o conteúdo. Sem filtros de keywords.
+                    if article_url:
+                        full_content = get_wiki_summary(article_url)
+                        # Pequena pausa para não tomar block da Wikipedia API (Rate Limit)
+                        time.sleep(0.15) 
 
-                payload = {
-                    "name": str(name),
-                    "description": str(item.get("itemDescription", {}).get("value", "Evento Histórico")),
-                    "content": full_content,
-                    "year_start": int(year),
-                    "year_end": int(year),
-                    "latitude": float(c_raw[1]),
-                    "longitude": float(c_raw[0]),
-                    "continent": region_name,
-                    "period": determine_period(year),
-                    "is_manual": False
-                }
-                requests.post(API_URL, json=payload)
-                count += 1
-            except: continue
-        
-        if status_callback: status_callback(f"✅ {region_name}: +{count} eventos.")
-        return True, count
+                    # Se não veio conteúdo da Wiki, usa a descrição curta do Wikidata como fallback
+                    desc = item.get("itemDescription", {}).get("value", "Evento Histórico")
+                    
+                    payload = {
+                        "name": str(name),
+                        "description": str(desc),
+                        "content": full_content if full_content else desc, # Garante que content nunca vá vazio se possível
+                        "year_start": int(year),
+                        "year_end": int(year),
+                        "latitude": float(c_raw[1]),
+                        "longitude": float(c_raw[0]),
+                        "continent": region_name,
+                        "period": determine_period(year),
+                        "is_manual": False
+                    }
+                    
+                    requests.post(API_URL, json=payload)
+                    count += 1
+                except Exception as e: 
+                    # print(f"Erro item: {e}")
+                    continue
+            
+            if status_callback: status_callback(f"✅ {region_name}: +{count} eventos inseridos.")
+            return True, count
+        else:
+            print(f"Erro Wikidata Status: {r.status_code}")
+    except Exception as e:
+        print(f"Erro request SPARQL: {e}")
     return False, 0
 
 # ==============================================================================
-# PONTOS DE ENTRADA (Chamados pelo main.py)
+# MODO TURBO (FILTRÁVEL)
 # ==============================================================================
-
-def run_fast_mode(status_callback=None):
+def run_fast_mode(status_callback, target_continents, start_year, end_year):
+    # Primeiro carrega os manuais para garantir
     populate_from_json_file(status_callback)
-    for cid, cname in CONTINENT_IDS:
-        fetch_massive_fast(cid, cname, status_callback)
+    
+    selected_ids = [ (cid, name) for name, cid in CONTINENT_MAP.items() if name in target_continents ]
+    
+    if not selected_ids:
+        if status_callback: status_callback("⚠️ Nenhum continente selecionado!")
+        return
+
+    for continent_id, continent_name in selected_ids:
+        if status_callback: status_callback(f"🚀 Iniciando busca em {continent_name}...")
+        
+        # QUERY SPARQL SUPER TUNADA
+        # Adicionei muito mais IDs de tipos para pegar Farrapos (Rebelião), Golpes, etc.
+        query = f"""
+        SELECT DISTINCT ?item ?itemLabel ?itemDescription ?date ?coord ?article WHERE {{
+          
+          # LISTA EXPANDIDA DE TIPOS:
+          # Q1190554 (Evento Histórico), Q198 (Guerra), Q178 (Batalha), Q131967 (Tratado)
+          # Q1023929 (Revolução), Q124734 (Rebelião/Insurreição), Q40231 (Eleição importante)
+          # Q132821 (Assassinato), Q350604 (Campanha Militar), Q6534 (Golpe de Estado)
+          VALUES ?type {{ 
+            wd:Q1190554 wd:Q198 wd:Q178 wd:Q131967 wd:Q1023929 
+            wd:Q124734 wd:Q40231 wd:Q132821 wd:Q350604 wd:Q6534
+          }}
+          
+          ?item wdt:P31/wdt:P279* ?type .     # É um desses tipos
+          ?item wdt:P30 wd:{continent_id} .   # É no continente X
+          ?item wdt:P585 ?date .              # Tem data
+          ?item wdt:P625 ?coord .             # Tem coordenada
+
+          # Filtro de Data
+          FILTER(YEAR(?date) >= {start_year} && YEAR(?date) <= {end_year})
+
+          # Anti-Eclipse (Usando MINUS com classes é mais rápido que REGEX)
+          MINUS {{ ?item wdt:P31/wdt:P279* wd:Q3863 . }} 
+          MINUS {{ ?item wdt:P31/wdt:P279* wd:Q44235 . }}
+
+          # Tenta pegar artigo em PT, se não der pega em EN
+          OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "pt" ; schema:isPartOf <https://pt.wikipedia.org/> . }}
+          OPTIONAL {{ ?article schema:about ?item ; schema:inLanguage "en" ; schema:isPartOf <https://en.wikipedia.org/> . }}
+
+          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "pt,en". }}
+        }}
+        ORDER BY DESC(?date)
+        LIMIT 3500
+        """
+        
+        process_query_results(query, continent_name, status_callback)
+        
+        # Pausa para respirar entre continentes
         time.sleep(2)
 
-def run_detailed_mode(status_callback=None):
-    populate_from_json_file(status_callback)
-    # Períodos Chave para Varredura
-    periods = [(-3000, -1), (1, 1500), (1501, 1900), (1901, 2025)]
-    
-    total_steps = len(CONTINENT_BOXES) * len(periods)
-    step = 0
-    
-    for name, lon_sw, lat_sw, lon_ne, lat_ne in CONTINENT_BOXES:
-        for start, end in periods:
-            step += 1
-            if status_callback:
-                pct = int((step/total_steps)*100)
-                status_callback(f"🌍 Varredura {pct}%: {name} ({start} a {end})")
-            
-            fetch_recursive(name, (lon_sw, lat_sw, lon_ne, lat_ne), start, end, 50, status_callback)
-            time.sleep(1)
+def run_detailed_mode(status_callback, target_continents, start_year, end_year):
+    # Por enquanto usa o mesmo do Turbo pois ficou muito bom
+    run_fast_mode(status_callback, target_continents, start_year, end_year)
