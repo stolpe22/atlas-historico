@@ -1,86 +1,120 @@
 # 🌍 Atlas Histórico Interativo
 
-Um mapa interativo full-stack que visualiza eventos históricos ao redor do mundo, com filtragem por data, continente e busca textual.
+Uma plataforma full-stack moderna para visualização e gestão de eventos históricos geolocalizados. O sistema combina dados manuais com **ingestão inteligente via Wikidata e Wikipédia**, oferecendo resumos ricos, filtragem temporal e análise geográfica.
 
-![Preview](./preview.png) *(Coloque um print do seu mapa aqui depois)*
+![Preview](./preview.png)
+
+## ✨ Principais Funcionalidades
+
+- **🗺️ Visualização Híbrida:** Alterne fluidamente entre **Mapa Interativo** (com clusterização) e **Lista Tabular** (com ações de gestão).
+- **🧠 População Inteligente (ETL):**
+  - **Modo Turbo:** Busca agressiva por Guerras, Tratados, Revoluções e marcos históricos no Wikidata.
+  - **Conteúdo Rico:** O robô acessa a API da Wikipédia para trazer resumos didáticos em português automaticamente.
+  - **Modo Varredura:** Scan geográfico detalhado para encontrar eventos obscuros.
+- **✍️ Gestão de Dados:**
+  - Cadastro manual de eventos com **seletor de coordenadas no mapa**.
+  - Proteção de dados: Eventos importados são protegidos, apenas eventos manuais podem ser excluídos.
+- **🎨 UX Moderna:**
+  - **Dark Mode** automático e manual.
+  - Modais de confirmação e notificações (Toast) estilizados.
+  - Filtros dinâmicos por Continente, Ano (Slider) e Texto.
 
 ## 🚀 Tecnologias
 
-- **Frontend:** React, Vite, Leaflet (Mapas), CSS Modules.
-- **Backend:** Python, FastAPI, SQLAlchemy.
-- **Database:** PostgreSQL com PostGIS (Geolocalização).
-- **Infra:** Docker & Docker Compose.
+### Frontend
+- **React 18 + Vite** (Performance e modularidade)
+- **Leaflet & React-Leaflet** (Mapas e Clusterização)
+- **Tailwind CSS** (Estilização moderna e Responsiva)
+- **Lucide React** (Ícones vetoriais)
+
+### Backend
+- **Python 3.10+ & FastAPI** (Alta performance assíncrona)
+- **SQLAlchemy & Pydantic** (ORM e Validação de Dados)
+- **BeautifulSoup/Requests** (Web Scraping e Integração APIs Externas)
+
+### Banco de Dados & Infra
+- **PostgreSQL + PostGIS** (Armazenamento de dados espaciais)
+- **Docker & Docker Compose** (Containerização completa)
+
+---
 
 ## 🛠️ Como Rodar (Quickstart)
 
-Certifique-se de ter o **Docker** e o **Docker Compose** instalados.
+Pré-requisitos: **Docker** e **Docker Compose** instalados.
 
-1. Clone o repositório:
+1. **Clone o repositório:**
    ```bash
-   git clone [https://github.com/SEU_USUARIO/atlas-historico.git](https://github.com/SEU_USUARIO/atlas-historico.git)
+   git clone https://github.com/SEU_USUARIO/atlas-historico.git
    cd atlas-historico
    ```
 
-2. Suba a aplicação:
+2. **Suba a aplicação:**
    ```bash
    docker-compose up --build
    ```
+   *O processo de build pode levar alguns minutos na primeira vez.*
 
-3. Acesse no navegador:
-   - **Frontend (Mapa):** http://localhost:3000
-   - **Backend (Docs):** http://localhost:8000/docs
-
----
+3. **Acesse:**
+   - **Frontend (Aplicação):** http://localhost:3000
+   - **Backend (Docs API):** http://localhost:8000/docs
 
 ## 💾 Populando o Banco de Dados
 
-Ao rodar pela primeira vez, o mapa estará vazio. O projeto inclui scripts inteligentes para buscar dados da Wikidata e limpar duplicatas.
+Esqueça os comandos de terminal! O projeto agora possui um Painel de Controle integrado na interface.
 
-Para rodar os scripts, execute os comandos abaixo **em outro terminal** (enquanto o docker roda):
+1. Abra a aplicação em http://localhost:3000.
+2. No menu lateral direito (ícone de engrenagem ⚙️), você encontrará as opções de ingestão:
 
-### 1. Popular Dados (Brasil, Mundo e Manual)
-Este script insere uma lista manual garantida e busca centenas de eventos na Wikidata.
+### ⚡ Modo Turbo (Recomendado)
+Faz uma varredura nas categorias principais (Guerras, Revoluções, Descobertas) do Wikidata e busca automaticamente os resumos na Wikipédia.
+- **Tempo estimado:** 2 a 5 minutos.
+- **Resultado:** ~3.000 eventos principais com descrições ricas.
 
-```bash
-# Executa o script dentro do container do backend
-docker-compose exec backend python app/populate_final.py
-```
-
-### 2. Remover Duplicatas
-Como agregamos várias fontes, podem haver eventos repetidos. Este script analisa nomes e datas próximas para limpar o banco.
-
-```bash
-docker-compose exec backend python app/deduplicate_smart.py
-```
-
-### 3. (Opcional) Apagar evento específico
-Se precisar remover um evento teimoso pelo nome exato:
-
-```bash
-# Edite o arquivo backend/app/delete_specific.py com o nome desejado antes de rodar, ou entre no container
-docker-compose exec backend python app/delete_specific.py
-```
-
----
+### 🔍 Modo Varredura
+Realiza uma busca geográfica recursiva por coordenadas e períodos de tempo. Ideal para encontrar eventos menores que não possuem categorias bem definidas.
+- **Tempo estimado:** 10+ minutos (processo lento e profundo).
+- **Nota:** O sistema remove duplicatas automaticamente ao final de cada processo.
 
 ## 📂 Estrutura do Projeto
 
 ```
 /
-├── backend/            # API FastAPI e Scripts ETL
+├── backend/            # API FastAPI
 │   ├── app/
-│   │   ├── main.py     # Rotas e Configuração da API
-│   │   ├── models.py   # Modelos do Banco (SQLAlchemy)
-│   │   └── ...scripts  # Scripts de população e limpeza
+│   │   ├── main.py           # Endpoints e Lógica de Negócio
+│   │   ├── models.py         # Schemas do Banco (com is_manual flag)
+│   │   ├── populate_final.py # Scripts de ETL (Wikidata/Wikipedia)
+│   │   └── database.py       # Conexão Postgres
 │   └── Dockerfile
 │
-├── frontend/           # Aplicação React
-│   ├── src/            # Componentes e Lógica do Mapa
+├── frontend/           # SPA React
+│   ├── src/
+│   │   ├── App.jsx           # Componente Principal e Roteamento
+│   │   ├── components/       # Modais, Botões e Controles de Mapa
+│   │   └── main.jsx
 │   └── Dockerfile
 │
-└── docker-compose.yaml # Orquestração dos containers
+├── db_init/            # Scripts SQL
+│   └── init.sql        # Dump inicial (estrutura + dados base)
+│
+└── docker-compose.yaml # Orquestração
 ```
+
+## 🛡️ Decisões de Arquitetura
+
+- **Separação de Responsabilidades:** O Backend cuida da integridade dos dados e regras de negócio (cálculo automático de Período Histórico), enquanto o Frontend foca puramente na experiência do usuário.
+- **Persistência Híbrida:** Utilizamos um arquivo `init.sql` para garantir que o projeto "nasça" pronto, mas permitimos expansão dinâmica via API.
+- **Segurança de Dados:** A flag `is_manual` no banco impede que usuários apaguem acidentalmente dados históricos validados (Wikidata), permitindo gestão apenas dos registros criados pelo usuário.
 
 ## 🤝 Contribuição
 
-Sinta-se livre para abrir issues ou pull requests melhorando a visualização ou adicionando novas fontes de dados históricos!
+Contribuições são bem-vindas! Se você tiver ideias para novas fontes de dados ou melhorias na visualização temporal:
+
+1. Faça um Fork.
+2. Crie uma Branch (`git checkout -b feature/nova-feature`).
+3. Commit suas mudanças.
+4. Abra um Pull Request.
+
+---
+
+Desenvolvido com 💜 e História.

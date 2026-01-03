@@ -1,68 +1,51 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* --- RESET ESTRUTURAL --- */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+/* --- LEAFLET OVERRIDES (O Tailwind não mexe aqui) --- */
+.leaflet-container {
+  width: 100%;
+  height: 100% !important;
+  background-color: #aad3df; /* Cor do mar padrão */
+  z-index: 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Ajuste para o mapa escuro não ficar cinza antes de carregar */
+.dark .leaflet-container {
+  background-color: #1e293b; 
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+/* Customizações dos Popups e Labels (Mantivemos do CSS antigo) */
+.custom-map-label { background: transparent !important; border: none !important; }
+
+.label-content {
+  background-color: white;
+  @apply border border-brand-600 rounded-md shadow-md px-2 py-1 text-center font-bold text-xs text-slate-800;
+  width: max-content; max-width: 180px; white-space: normal;
+  position: relative; left: 50%; transform: translateX(-50%);
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.dark .label-content {
+  @apply bg-slate-800 border-slate-600 text-slate-100;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Setinha do label */
+.label-content::after {
+  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-top: 6px solid #0284c7; /* brand-600 */
 }
+.dark .label-content::after { border-top-color: #475569; }
+
+/* Cluster */
+.custom-marker-cluster {
+  @apply bg-brand-600 text-white flex items-center justify-center rounded-full border-4 border-white/50 shadow-lg font-bold text-sm transition-transform;
+}
+.custom-marker-cluster:hover { transform: scale(1.1); }
