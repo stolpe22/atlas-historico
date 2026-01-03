@@ -3,6 +3,7 @@
 Uma plataforma full-stack moderna para visualização e gestão de eventos históricos geolocalizados. O sistema combina dados manuais com **ingestão inteligente via Wikidata e Wikipédia**, oferecendo resumos ricos, filtragem temporal e análise geográfica.
 
 ![Preview](./preview.png)
+<<<<<<< HEAD
 
 ## ✨ Principais Funcionalidades
 
@@ -18,6 +19,8 @@ Uma plataforma full-stack moderna para visualização e gestão de eventos hist�
   - **Dark Mode** automático e manual.
   - Modais de confirmação e notificações (Toast) estilizados.
   - Filtros dinâmicos por Continente, Ano (Slider) e Texto.
+=======
+>>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
 
 ## 🚀 Tecnologias
 
@@ -44,7 +47,11 @@ Pré-requisitos: **Docker** e **Docker Compose** instalados.
 
 1. **Clone o repositório:**
    ```bash
+<<<<<<< HEAD
    git clone https://github.com/SEU_USUARIO/atlas-historico.git
+=======
+   git clone [https://github.com/stolpe22/atlas-historico.git](https://github.com/stolpe22/atlas-historico.git)
+>>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
    cd atlas-historico
    ```
 
@@ -108,6 +115,7 @@ Realiza uma busca geográfica recursiva por coordenadas e períodos de tempo. Id
 
 ## 🤝 Contribuição
 
+<<<<<<< HEAD
 Contribuições são bem-vindas! Se você tiver ideias para novas fontes de dados ou melhorias na visualização temporal:
 
 1. Faça um Fork.
@@ -118,3 +126,6 @@ Contribuições são bem-vindas! Se você tiver ideias para novas fontes de dado
 ---
 
 Desenvolvido com 💜 e História.
+=======
+Sinta-se livre para abrir issues ou pull requests melhorando a visualização ou adicionando novas fontes de dados históricos!
+>>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
