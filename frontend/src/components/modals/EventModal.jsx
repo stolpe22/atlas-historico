@@ -1,9 +1,8 @@
 import React from 'react';
 import { MapPin, Calendar } from 'lucide-react';
 
-// Função auxiliar robusta para formatar o ano
+// Robust helper function to format the year
 const formatYear = (data) => {
-    // Tenta pegar year_start ou year
     let y = data.year_start;
     if (y === undefined || y === null) y = data.year;
 
@@ -26,12 +25,12 @@ const EventModal = ({ isOpen, onClose, mode, eventData, newEvent, setNewEvent, o
              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                 {mode === 'view' ? 'Detalhes Históricos' : 'Novo Registro'}
              </h2>
-             <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition">✕</button>
+             <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition text-slate-500 dark:text-slate-400">✕</button>
           </div>
           
           {mode === 'view' && eventData ? (
             <div className="space-y-5">
-               {/* CABEÇALHO COM NOME E DATA CORRIGIDA */}
+               {/* HEADER WITH NAME AND CORRECTED DATE */}
                <div className="border-b border-slate-100 dark:border-slate-700 pb-5">
                   <div className="flex items-start justify-between gap-4">
                       <h1 className="text-3xl font-black text-brand-600 dark:text-brand-400 leading-tight">
@@ -47,7 +46,7 @@ const EventModal = ({ isOpen, onClose, mode, eventData, newEvent, setNewEvent, o
                   </div>
                </div>
 
-               {/* GRID DE DETALHES */}
+               {/* DETAILS GRID */}
                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                     <span className="block text-xs text-slate-400 uppercase mb-1 font-bold">Período</span>
@@ -59,7 +58,7 @@ const EventModal = ({ isOpen, onClose, mode, eventData, newEvent, setNewEvent, o
                   </div>
                </div>
 
-               {/* DESCRIÇÃO CURTA */}
+               {/* SHORT DESCRIPTION */}
                <div>
                  <h3 className="text-sm font-bold text-slate-500 uppercase mb-1">Resumo</h3>
                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
@@ -67,7 +66,7 @@ const EventModal = ({ isOpen, onClose, mode, eventData, newEvent, setNewEvent, o
                  </p>
                </div>
 
-               {/* CONTEÚDO (SIMPLIFICADO COMO PEDIDO) */}
+               {/* CONTENT */}
                {eventData.content && (
                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
                     <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-h-60 overflow-y-auto pr-2 custom-scrollbar text-justify">
@@ -77,34 +76,92 @@ const EventModal = ({ isOpen, onClose, mode, eventData, newEvent, setNewEvent, o
                )}
             </div>
           ) : (
-            // --- MODO DE CADASTRO (MANTIDO IGUAL) ---
+            // --- REGISTRATION MODE (FIXED DARK MODE INPUTS) ---
             <div className="space-y-4">
-               <div><label className="block text-sm font-medium mb-1">Nome</label><input type="text" className="w-full p-2 rounded border dark:bg-slate-700 dark:border-slate-600" value={newEvent.name} onChange={e => setNewEvent({...newEvent, name: e.target.value})} /></div>
+               <div>
+                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Nome</label>
+                 <input 
+                    type="text" 
+                    className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition" 
+                    value={newEvent.name} 
+                    onChange={e => setNewEvent({...newEvent, name: e.target.value})} 
+                 />
+               </div>
+               
                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium mb-1">Ano (Use negativo para a.C.)</label><input type="number" className="w-full p-2 rounded border dark:bg-slate-700 dark:border-slate-600" value={newEvent.year_start} onChange={e => setNewEvent({...newEvent, year_start: e.target.value})} /></div>
-                  <div><label className="block text-sm font-medium mb-1">Continente</label>
-                    <select className="w-full p-2 rounded border dark:bg-slate-700 dark:border-slate-600" value={newEvent.continent} onChange={e => setNewEvent({...newEvent, continent: e.target.value})}>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Ano (Use negativo para a.C.)</label>
+                    <input 
+                        type="number" 
+                        className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition dark:[color-scheme:dark]" 
+                        value={newEvent.year_start} 
+                        onChange={e => setNewEvent({...newEvent, year_start: e.target.value})} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Continente</label>
+                    <select 
+                        className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition" 
+                        value={newEvent.continent} 
+                        onChange={e => setNewEvent({...newEvent, continent: e.target.value})}
+                    >
                          {continents.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                </div>
-               <div><label className="block text-sm font-medium mb-1">Descrição Curta</label><input type="text" className="w-full p-2 rounded border dark:bg-slate-700 dark:border-slate-600" value={newEvent.description} onChange={e => setNewEvent({...newEvent, description: e.target.value})} /></div>
-               <div><label className="block text-sm font-medium mb-1">Resumo / História Completa</label><textarea rows="6" className="w-full p-2 rounded border dark:bg-slate-700 dark:border-slate-600" value={newEvent.content} onChange={e => setNewEvent({...newEvent, content: e.target.value})}></textarea></div>
+               
+               <div>
+                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Descrição Curta</label>
+                 <input 
+                    type="text" 
+                    className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition" 
+                    value={newEvent.description} 
+                    onChange={e => setNewEvent({...newEvent, description: e.target.value})} 
+                 />
+               </div>
+               
+               <div>
+                 <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Resumo / História Completa</label>
+                 <textarea 
+                    rows="6" 
+                    className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition resize-none custom-scrollbar" 
+                    value={newEvent.content} 
+                    onChange={e => setNewEvent({...newEvent, content: e.target.value})}
+                 ></textarea>
+               </div>
                
                <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-lg border border-slate-200 dark:border-slate-600">
                   <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-bold text-slate-500">Localização Geográfica</span>
-                      <button onClick={onPickFromMap} className="text-xs bg-brand-100 text-brand-700 px-2 py-1 rounded hover:bg-brand-200 flex items-center gap-1">
+                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Localização Geográfica</span>
+                      <button onClick={onPickFromMap} className="text-xs bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 px-2 py-1 rounded hover:bg-brand-200 dark:hover:bg-brand-900/60 flex items-center gap-1 transition">
                          <MapPin size={12}/> Selecionar no Mapa
                       </button>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-xs">
-                      <div><label>Latitude</label><input type="number" step="any" className="w-full p-1 rounded border" value={newEvent.latitude} onChange={e => setNewEvent({...newEvent, latitude: e.target.value})} /></div>
-                      <div><label>Longitude</label><input type="number" step="any" className="w-full p-1 rounded border" value={newEvent.longitude} onChange={e => setNewEvent({...newEvent, longitude: e.target.value})} /></div>
+                      <div>
+                        <label className="text-slate-600 dark:text-slate-400 block mb-1">Latitude</label>
+                        <input 
+                            type="number" 
+                            step="any" 
+                            className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-brand-500 outline-none transition dark:[color-scheme:dark]" 
+                            value={newEvent.latitude} 
+                            onChange={e => setNewEvent({...newEvent, latitude: e.target.value})} 
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-600 dark:text-slate-400 block mb-1">Longitude</label>
+                        <input 
+                            type="number" 
+                            step="any" 
+                            className="w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-brand-500 outline-none transition dark:[color-scheme:dark]" 
+                            value={newEvent.longitude} 
+                            onChange={e => setNewEvent({...newEvent, longitude: e.target.value})} 
+                        />
+                      </div>
                   </div>
                </div>
 
-               <button onClick={onSave} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold shadow-lg shadow-brand-500/30 transition">💾 Salvar Registro</button>
+               <button onClick={onSave} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold shadow-lg shadow-brand-500/30 transition transform active:scale-[0.98]">💾 Salvar Registro</button>
             </div>
           )}
        </div>

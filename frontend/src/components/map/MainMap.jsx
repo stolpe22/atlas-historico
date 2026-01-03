@@ -20,7 +20,28 @@ const MainMap = ({
 }) => {
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full
+      {/* --- ESTILIZAÇÃO PROFUNDA DO LEAFLET (OVERRIDES) --- */}
+      {/* Fundo e Texto do Controle de Camadas */}
+      [&_.leaflet-control-layers]:dark:bg-slate-800 
+      [&_.leaflet-control-layers]:dark:text-slate-200
+      [&_.leaflet-control-layers]:border-none
+      [&_.leaflet-control-layers]:shadow-xl
+      
+      /* Inverte a cor do ícone de camadas (quadradinho) para ficar branco no dark mode */
+      [&_.leaflet-control-layers-toggle]:dark:invert
+      
+      /* Ajusta os Radio Buttons nativos */
+      [&_input[type='radio']]:dark:accent-blue-500
+      
+      /* Ajusta os controles de Zoom (+ e -) */
+      [&_.leaflet-control-zoom-in]:dark:bg-slate-800
+      [&_.leaflet-control-zoom-in]:dark:text-slate-200
+      [&_.leaflet-control-zoom-in]:dark:border-slate-600
+      [&_.leaflet-control-zoom-out]:dark:bg-slate-800
+      [&_.leaflet-control-zoom-out]:dark:text-slate-200
+      [&_.leaflet-control-zoom-out]:dark:border-slate-600
+    ">
       
       {/* AVISO FLUTUANTE DE MODO DE INSERÇÃO */}
       {isAddingMode && (
