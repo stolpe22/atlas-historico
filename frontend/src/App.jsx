@@ -39,6 +39,7 @@ function App() {
   const [focusPosition, setFocusPosition] = useState(null)
   const [selectedContinent, setSelectedContinent] = useState("Todos")
   const [searchTerm, setSearchTerm] = useState("")
+  const [statusMessage, setStatusMessage] = useState("") // NOVO STATE PARA MENSAGEM
   
   // Controle de Loading, Menu e Sincronização
   const [isPopulating, setIsPopulating] = useState(false)
@@ -108,36 +109,48 @@ function App() {
 
   // --- FUNÇÕES DO MENU ---
 
-  // 1. WIKIDATA (Com Polling Automático)
+ // --- NOVA LÓGICA INTELIGENTE DO BOTÃO ---
   const handleWikiPopulate = async () => {
     setShowMenu(false);
     
-    // Dispara o backend
     try {
+      // 1. Manda iniciar
       setIsPopulating(true);
+      setStatusMessage("🚀 Iniciando conexão...");
       await axios.post('http://localhost:8000/populate');
       
-      // Inicia o Modo Sincronização
       setIsSyncing(true);
       
-      // Polling: Atualiza o mapa a cada 2.5 segundos
-      const intervalId = setInterval(() => {
-         refreshData(); // Puxa dados novos do backend
-         console.log("🔄 Sincronizando dados...");
-      }, 2500);
+      // 2. Loop de Monitoramento (Polling)
+      const intervalId = setInterval(async () => {
+         try {
+             // Pergunta o status atual
+             const statusRes = await axios.get('http://localhost:8000/populate/status');
+             const { is_running, message } = statusRes.data;
 
-      // Para de atualizar depois de 45 segundos (tempo estimado)
-      setTimeout(() => {
-        clearInterval(intervalId);
-        setIsSyncing(false);
-        setIsPopulating(false);
-        alert("✅ Sincronização concluída! Os novos eventos já estão no mapa.");
-      }, 45000);
+             // Atualiza a mensagem na barra azul
+             setStatusMessage(message);
+             
+             // Atualiza o mapa em tempo real também
+             refreshData();
+
+             // SE O BACKEND DISSER QUE ACABOU:
+             if (!is_running) {
+                 clearInterval(intervalId); // Para o loop
+                 setIsSyncing(false);
+                 setIsPopulating(false);
+                 alert("✅ Processo Finalizado pelo Servidor!");
+             }
+         } catch (err) {
+             console.error("Erro ao checar status", err);
+         }
+      }, 1500); // Checa a cada 1.5 segundos
 
     } catch (error) {
       console.error(error);
       alert("Erro ao conectar com servidor.");
       setIsPopulating(false);
+      setIsSyncing(false);
     }
   };
 
@@ -193,11 +206,12 @@ function App() {
         {/* --- MENU DROPDOWN --- */}
         <div className="actions-container">
           
-          {/* Se estiver sincronizando, mostra barra de loading. Se não, mostra botão. */}
+         {/* BARRA DE STATUS INTELIGENTE */}
           {isSyncing ? (
             <div className="sync-status-bar">
               <div className="spinner"></div>
-              <span>Buscando na Wikidata... (Aguarde)</span>
+              {/* Aqui mostramos a mensagem que vem do Python! */}
+              <span style={{fontSize: '0.8rem'}}>{statusMessage}</span>
             </div>
           ) : (
             <button 
@@ -205,7 +219,7 @@ function App() {
               onClick={() => setShowMenu(!showMenu)}
               disabled={isPopulating}
             >
-              {isPopulating ? "⏳ Iniciando..." : "⚙️ Gerenciar Dados ▾"}
+              {isPopulating ? "⏳ Aguarde..." : "⚙️ Gerenciar Dados ▾"}
             </button>
           )}
 
@@ -343,7 +357,9 @@ function App() {
                   <strong>{feature.properties.name}</strong><br />
                   {feature.properties.description}<br />
                   <hr style={{margin: '5px 0', opacity: 0.5}}/>
-                  <em>{feature.properties.year} - {feature.properties.continent}</em>
+                  <em>{feature.properties.year} • {feature.properties.period}</em> {/* Aqui */}
+                  <br/>
+                  <small>{feature.properties.continent}</small>
                 </Popup>
               </Marker>
             ))}

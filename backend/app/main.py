@@ -5,12 +5,11 @@ from sqlalchemy import text, func
 from geoalchemy2.shape import to_shape
 from shapely.geometry import mapping
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from . import models, database, populate_final, deduplicate_smart
 
 app = FastAPI(title="Atlas Histórico API")
 
-# Configuração CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,7 +28,56 @@ class EventCreate(BaseModel):
     latitude: float
     longitude: float
     continent: str = None
+    period: str = None # <--- NOVO CAMPO
 
+# ESTADO GLOBAL
+population_state = {
+    "is_running": False,
+    "message": "Aguardando início...",
+}
+
+def update_population_status(message: str):
+    population_state["message"] = message
+    print(f"STATUS: {message}")
+
+# --- TAREFA PESADA (BACKGROUND) ---
+def run_population_logic():
+    # Não precisa setar is_running=True aqui, pois já setamos na rota.
+    try:
+        populate_final.populate_manual(status_callback=update_population_status)
+        
+        update_population_status("🧹 Verificando duplicatas finais...")
+        deduplicate_smart.deduplicate_fuzzy()
+        
+        population_state["message"] = "✅ Concluído com sucesso!"
+    except Exception as e:
+        print(f"ERRO FATAL: {e}")
+        population_state["message"] = f"❌ Erro: {str(e)}"
+    finally:
+        # Só aqui setamos como False
+        population_state["is_running"] = False
+
+# --- ROTAS ---
+
+@app.post("/populate")
+def trigger_populate(background_tasks: BackgroundTasks):
+    if population_state["is_running"]:
+        return {"status": "busy", "message": "Já existe uma importação em andamento."}
+    
+    # --- CORREÇÃO AQUI ---
+    # Marcamos como rodando IMEDIATAMENTE (Síncrono), antes de iniciar a thread.
+    population_state["is_running"] = True
+    population_state["message"] = "🚀 Inicializando..."
+    
+    background_tasks.add_task(run_population_logic)
+    
+    return {"status": "started", "message": "Importação iniciada."}
+
+@app.get("/populate/status")
+def get_populate_status():
+    return population_state
+
+# ... (Mantenha o resto das rotas GET/POST events igual estava) ...
 # --- Rota GET (Listagem) ---
 @app.get("/events")
 def get_events(
@@ -63,31 +111,34 @@ def get_events(
         })
     return {"type": "FeatureCollection", "features": features}
 
-# --- NOVA LÓGICA: Verifica Duplicidade ---
+# --- Validação de Duplicidade ---
 def check_if_exists(db: Session, name: str, year: int):
-    # Procura por nome (case insensitive) E ano igual
     return db.query(models.HistoricalEvent).filter(
-        models.HistoricalEvent.name.ilike(name), # ilike = ignora maiúscula/minúscula
+        models.HistoricalEvent.name.ilike(name),
         models.HistoricalEvent.year_start == year
     ).first()
 
 # --- Rota POST Individual (Atualizada) ---
 @app.post("/events")
 def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
-    # 1. Verifica se já existe
-    existing = check_if_exists(db, event.name, event.year_start)
+    # Verifica duplicidade
+    existing = db.query(models.HistoricalEvent).filter(
+        models.HistoricalEvent.name.ilike(event.name),
+        models.HistoricalEvent.year_start == event.year_start
+    ).first()
+    
     if existing:
-        # Se existe, retorna sucesso mas avisa que não criou novo (Idempotência)
         return {"status": "skipped", "message": "Event already exists", "id": existing.id}
 
-    # 2. Se não existe, cria
     wkt_location = f"SRID=4326;POINT({event.longitude} {event.latitude})"
+    
     db_event = models.HistoricalEvent(
         name=event.name,
         description=event.description,
         year_start=event.year_start,
         year_end=event.year_end,
         continent=event.continent,
+        period=event.period, # <--- GRAVA NO BANCO
         location=wkt_location
     )
     db.add(db_event)
@@ -95,16 +146,20 @@ def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
     db.refresh(db_event)
     return {"status": "created", "name": db_event.name, "id": db_event.id}
 
-# --- Rota POST Massiva (JSON Manual) - Atualizada ---
+# --- Rota POST Import (Atualizada) ---
 @app.post("/events/import")
 def import_bulk_events(events: List[EventCreate], db: Session = Depends(database.get_db)):
     imported_count = 0
     skipped_count = 0
-    
     for event in events:
         try:
-            # 1. Verifica duplicidade
-            if check_if_exists(db, event.name, event.year_start):
+            # Verifica duplicidade
+            exists = db.query(models.HistoricalEvent).filter(
+                models.HistoricalEvent.name.ilike(event.name),
+                models.HistoricalEvent.year_start == event.year_start
+            ).first()
+            
+            if exists:
                 skipped_count += 1
                 continue
 
@@ -115,21 +170,17 @@ def import_bulk_events(events: List[EventCreate], db: Session = Depends(database
                 year_start=event.year_start,
                 year_end=event.year_end,
                 continent=event.continent,
+                period=event.period, # <--- GRAVA NO BANCO
                 location=wkt_location
             )
             db.add(db_event)
             imported_count += 1
         except Exception as e:
-            print(f"Erro ao importar {event.name}: {e}")
+            print(f"Erro no import: {e}")
             continue
             
     db.commit()
-    # Retorna o resumo para o frontend
-    return {
-        "status": "success", 
-        "imported_count": imported_count, 
-        "skipped_count": skipped_count
-    }
+    return {"status": "success", "imported_count": imported_count, "skipped_count": skipped_count}
 
 @app.get("/events/all")
 def get_all_events(db: Session = Depends(database.get_db)):
@@ -144,7 +195,8 @@ def get_all_events(db: Session = Depends(database.get_db)):
             "year_end": event.year_end,
             "latitude": shape.y,
             "longitude": shape.x,
-            "continent": event.continent
+            "continent": event.continent,
+            "period": event.period # <--- RETORNA PRO FRONT
         })
     return response
 
@@ -153,26 +205,6 @@ def delete_event(event_id: int, db: Session = Depends(database.get_db)):
     event = db.query(models.HistoricalEvent).filter(models.HistoricalEvent.id == event_id).first()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    
     db.delete(event)
     db.commit()
     return {"status": "deleted", "id": event_id}
-
-# --- LÓGICA DE POPULAÇÃO EM BACKGROUND ---
-def run_population_logic():
-    print("🤖 Iniciando população segura...")
-    populate_final.populate_manual() # Agora o endpoint interno já filtra duplicatas
-    
-    # Busca um pouco mais de dados
-    populate_final.fetch_from_wikidata("Q18", "América do Sul", limit=50)
-    populate_final.fetch_from_wikidata("Q49", "América do Norte", limit=50)
-    populate_final.fetch_from_wikidata("Q46", "Europa", limit=50)
-    
-    # Roda o deduplicate só pra garantir casos extremos
-    deduplicate_smart.deduplicate_fuzzy()
-    print("✅ População concluída!")
-
-@app.post("/populate")
-def trigger_populate(background_tasks: BackgroundTasks):
-    background_tasks.add_task(run_population_logic)
-    return {"status": "População iniciada! O sistema irá ignorar eventos que já existem."}
