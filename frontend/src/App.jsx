@@ -201,8 +201,13 @@ function App() {
 
   // Pedir para deletar
   const requestDelete = (evt) => {
-    if (!evt.is_manual) {
-        setNotification({ type: 'warning', title: 'Bloqueado', message: 'Eventos importados automaticamente não podem ser apagados.' });
+    // MUDANÇA AQUI: verifica evt.source em vez de is_manual
+    if (evt.source !== 'manual') {
+        setNotification({ 
+            type: 'warning', 
+            title: 'Ação Bloqueada', 
+            message: 'Apenas eventos criados manualmente podem ser excluídos. Registros oficiais (Wikidata/Fixo) são protegidos.' 
+        });
         return;
     }
     setDeleteData({ id: evt.id, name: evt.name });

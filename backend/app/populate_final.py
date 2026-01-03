@@ -3,6 +3,7 @@ import time
 import json
 import os
 import re
+from .models import EventSource
 
 API_URL = "http://localhost:8000/events"
 WIKIDATA_URL = "https://query.wikidata.org/sparql"
@@ -65,9 +66,11 @@ def populate_from_json_file(status_callback=None):
             manual_events = json.load(f)
         for evt in manual_events:
             try:
-                # Garante que o manual não seja apagável pelo processo de limpeza
-                evt['is_manual'] = False 
+                # Removemos is_manual e colocamos source = seed
+                if 'is_manual' in evt: del evt['is_manual'] 
+
                 evt['period'] = determine_period(int(evt["year_start"]))
+                evt['source'] = "seed" # <--- AQUI: Define como SEED
                 requests.post(API_URL, json=evt)
             except: pass
     except: pass
@@ -127,14 +130,14 @@ def process_query_results(query, region_name, status_callback):
                     payload = {
                         "name": str(name),
                         "description": str(desc),
-                        "content": full_content if full_content else desc, # Garante que content nunca vá vazio se possível
+                        "content": full_content if full_content else desc,
                         "year_start": int(year),
                         "year_end": int(year),
                         "latitude": float(c_raw[1]),
                         "longitude": float(c_raw[0]),
                         "continent": region_name,
                         "period": determine_period(year),
-                        "is_manual": False
+                        "source": "wikidata" # <--- AQUI: Define como WIKIDATA
                     }
                     
                     requests.post(API_URL, json=payload)

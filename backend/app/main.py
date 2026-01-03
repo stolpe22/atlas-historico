@@ -6,6 +6,7 @@ from shapely.geometry import mapping
 from pydantic import BaseModel
 from typing import List, Optional
 from . import models, database, populate_final, deduplicate_smart
+from .models import EventSource
 
 app = FastAPI(title="Atlas Histórico API")
 
@@ -30,6 +31,7 @@ class EventCreate(BaseModel):
     longitude: float
     continent: Optional[str] = None
     period: Optional[str] = None
+    source: Optional[str] = "manual"
     
 class PopulateOptions(BaseModel):
     mode: str
@@ -148,7 +150,7 @@ def get_all(db: Session = Depends(database.get_db)):
             "period": e.period, 
             "description": e.description, 
             "content": e.content,
-            "is_manual": e.is_manual, # <--- Enviando para o Frontend
+            "source": e.source, # <--- Enviando a nova coluna
             "latitude": s.y, 
             "longitude": s.x
         })
@@ -169,6 +171,7 @@ def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
         final_period = calculate_period(event.year_start)
 
     wkt = f"SRID=4326;POINT({event.longitude} {event.latitude})"
+    
     db_event = models.HistoricalEvent(
         name=event.name,
         description=event.description,
@@ -177,7 +180,8 @@ def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
         year_end=event.year_end,
         continent=event.continent,
         period=final_period,
-        is_manual=True,  # <--- AQUI ESTÁ A MÁGICA: Evento Manual = True
+        source=event.source, 
+        
         location=wkt
     )
     db.add(db_event)
