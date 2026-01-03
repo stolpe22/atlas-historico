@@ -2,7 +2,7 @@
 
 Um mapa interativo full-stack que visualiza eventos históricos ao redor do mundo, com filtragem por data, continente e busca textual.
 
-![Preview](./preview.png) *(Coloque um print do seu mapa aqui depois)*
+![Preview](./preview.png)
 
 ## 🚀 Tecnologias
 
