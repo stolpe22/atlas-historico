@@ -17,7 +17,7 @@ Certifique-se de ter o **Docker** e o **Docker Compose** instalados.
 
 1. Clone o repositório:
    ```bash
-   git clone [https://github.com/SEU_USUARIO/atlas-historico.git](https://github.com/SEU_USUARIO/atlas-historico.git)
+   git clone [https://github.com/stolpe22/atlas-historico.git](https://github.com/SEU_USUARIO/atlas-historico.git)
    cd atlas-historico
    ```
 
