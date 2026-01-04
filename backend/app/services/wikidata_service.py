@@ -38,13 +38,17 @@ class WikidataService:
 
     def __init__(self):
         self.url = settings.wikidata_url
-        # --- MUDANÇA 1: Forçando 120 segundos na marra ---
-        self.timeout = get_settings().wikidata_timeout 
-        print(f"DEBUG FORCE: Timeout definido para {self.timeout} segundos")
-        # -------------------------------------------------
+        self.timeout = settings.wikidata_timeout # Volta a usar o config.py
         self.delay = settings.wikidata_delay
 
-    def fetch_events(self, continent: str, start_year: int, end_year: int, status_callback: Optional[Callable[[str], None]] = None) -> List[WikidataEvent]:
+    def fetch_events(
+        self,
+        continent: str,
+        start_year: int,
+        end_year: int,
+        status_callback: Optional[Callable[[str], None]] = None
+    ) -> List[WikidataEvent]:
+        """Busca eventos de um continente em um período."""
         continent_id = self.CONTINENT_MAP.get(continent)
         if not continent_id:
             return []
@@ -52,7 +56,8 @@ class WikidataService:
         query = self._build_query(continent_id, start_year, end_year)
         
         print("-" * 50)
-        print(f"🔍 DEBUG QUERY OTIMIZADA ({continent}):\n{query}")
+        print(f"🔍 DEBUG QUERY ({continent} {start_year}-{end_year}):\n{query}")
+        print(f"DEBUG TIMEOUT: {self.timeout}s")
         print("-" * 50)
         
         try:
@@ -62,16 +67,28 @@ class WikidataService:
                 headers=self.HEADERS,
                 timeout=self.timeout
             )
+            
+            # Tratamento de erro 429 (Muitas requisições)
+            if response.status_code == 429:
+                if status_callback:
+                    status_callback(f"⚠️ Wikidata bloqueou (429). Aguardando {self.delay}s...")
+                time.sleep(self.delay)
+                return []
+
             response.raise_for_status()
             
             items = response.json()['results']['bindings']
             events = self._parse_results(items, continent)
             
             if status_callback: 
-                status_callback(f"📥 {continent} [{start_year}-{end_year}]:  {len(events)} eventos")
+                status_callback(f"📥 {continent} [{start_year}-{end_year}]: {len(events)} eventos")
             
             return events
             
+        except requests.exceptions.ReadTimeout:
+            if status_callback:
+                status_callback(f"🛑 Timeout de {self.timeout}s atingido em {continent}.")
+            return []
         except requests.RequestException as e: 
             if status_callback:
                 status_callback(f"❌ Erro em {continent}: {str(e)}")
@@ -91,40 +108,35 @@ class WikidataService:
         return None
 
     def _build_query(self, continent_id: str, start_year: int, end_year: int) -> str:
-        # --- MUDANÇA 2: Query Otimizada (Sem o '?' no P276 e sem MINUS) ---
+        """Query fiel ao formato que funciona no Wikidata Query Service."""
         return f"""
-        SELECT DISTINCT ?item ?itemLabel ?itemDescription ?start ?end ?coord ?article WHERE {{
+        SELECT DISTINCT ?item ?itemLabel ?itemDescription ?start ?end ?coord ?article WHERE {{                                            
           ?item wdt:P585|wdt:P580 ?date .
-          FILTER(YEAR(?date) >= {start_year} && YEAR(?date) < {end_year})
-
+          FILTER(YEAR(?date) >= {start_year} && YEAR(?date) < {end_year})        
           VALUES ?type {{ 
             wd:Q1190554 wd:Q198 wd:Q8465 wd:Q178561 wd:Q1261499 
-            wd:Q131569 wd:Q625298 wd:Q1023929 wd:Q124734 wd:Q6534 wd:Q132821
+            wd:Q131569 wd:Q625298 wd:Q1023929 wd:Q124734 wd:Q6534 wd:Q132821                                                            
           }}
-          ?item wdt:P31/wdt:P279* ?type .
-          
-          # AQUI ESTAVA O ERRO DE PERFORMANCE:
-          # Antes era: ?item wdt:P276?/wdt:P17/wdt:P30 wd:{continent_id} .
-          # Agora é direto:
-          ?item wdt:P17/wdt:P30 wd:{continent_id} .
-
+          ?item wdt:P31/wdt:P279* ?type .                          
+          ?item wdt:P276?/wdt:P17/wdt:P30 wd:{continent_id} .
+                                                                    
           OPTIONAL {{ ?item wdt:P580 ?st .}}
-          BIND(COALESCE(?st, ?date) AS ?start)
-
-          OPTIONAL {{ ?item wdt:P625 ?loc1 .}}
+          BIND(COALESCE(?st, ?date) AS ?start)                     
+          OPTIONAL {{ ?item wdt:P625 ?loc1 .}}                        
+          OPTIONAL {{ ?item wdt:P276/wdt:P625 ?loc2 .}}              
           OPTIONAL {{ ?item wdt:P17/wdt:P625 ?loc3 .}}
-          BIND(COALESCE(?loc1, ?loc3) AS ?coord)
-          FILTER(BOUND(?coord))
-
-          FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:Q3863 .}} 
-          FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:Q44235 .}}
-
+          BIND(COALESCE(?loc1, ?loc2, ?loc3) AS ?coord)            
+          FILTER(BOUND(?coord))                                     
+                                                                    
+          MINUS {{ ?item wdt:P31/wdt:P279* wd:Q3863 .}} 
+          MINUS {{ ?item wdt:P31/wdt:P279* wd:Q44235 .}}
+                                                                    
           OPTIONAL {{ 
-            ?article schema:about ?item ; 
+            ?article schema:about ?item ;                          
             schema:inLanguage "pt" ; 
-            schema:isPartOf <https://pt.wikipedia.org/> .
-          }}
-          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "pt,en".}}
+            schema:isPartOf <https://pt.wikipedia.org/> .          
+          }}                                                       
+          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "pt,en".}}                                                          
         }}
         ORDER BY DESC(?start) LIMIT {settings.query_limit}
         """
