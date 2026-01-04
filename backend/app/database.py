@@ -1,18 +1,20 @@
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from typing import Generator
 
-# Tenta pegar do ambiente (Docker), se não achar, usa localhost (Local com uv run)
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DATABASE_URL = f"postgresql://admin:admin@{DB_HOST}:5432/history_atlas"
+from .config import get_settings
 
-engine = create_engine(DATABASE_URL)
+settings = get_settings()
+
+engine = create_engine(settings.database_url, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-def get_db():
+
+def get_db() -> Generator[Session, None, None]:
+    """Dependency para injeção de sessão do banco."""
     db = SessionLocal()
     try:
         yield db
-    finally:
+    finally: 
         db.close()

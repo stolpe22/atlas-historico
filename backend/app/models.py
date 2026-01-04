@@ -1,27 +1,36 @@
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean
+from sqlalchemy import Column, Integer, String, Text, Enum as SQLEnum
 from geoalchemy2 import Geometry
-from .database import Base
-import enum
+from enum import Enum
 
-# 1. Definindo as opções do ENUM
-class EventSource(str, enum.Enum):
-    MANUAL = "manual"      # Criado pelo usuário
-    WIKIDATA = "wikidata"  # Baixado do robô
-    SEED = "seed"          # Do arquivo JSON fixo
+from .database import Base
+
+
+class EventSource(str, Enum):
+    """Origem do evento histórico."""
+    MANUAL = "manual"
+    WIKIDATA = "wikidata"
+    SEED = "seed"
+
 
 class HistoricalEvent(Base):
+    """Modelo de evento histórico."""
+    
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
+    name = Column(String(500), index=True, nullable=False)
+    description = Column(String(1000))
     content = Column(Text, nullable=True)
-    year_start = Column(Integer, index=True)
+    year_start = Column(Integer, index=True, nullable=False)
     year_end = Column(Integer, nullable=True)
-    continent = Column(String, index=True)
-    period = Column(String, index=True)
-    
-    # Usamos String no banco para facilitar, mas o Python valida o Enum
-    source = Column(String, default=EventSource.MANUAL.value, index=True) 
-    
-    location = Column(Geometry('POINT', srid=4326))
+    continent = Column(String(100), index=True)
+    period = Column(String(100), index=True)
+    source = Column(
+        SQLEnum(EventSource, values_callable=lambda x: [e.value for e in x]),
+        default=EventSource.MANUAL,
+        index=True
+    )
+    location = Column(Geometry('POINT', srid=4326), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Event {self.id}: {self.name} ({self.year_start})>"

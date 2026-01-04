@@ -8,6 +8,7 @@ const MapController = ({ isAddingMode, onMapClick }) => {
       }
     },
   });
+  
   return null;
 };
 
