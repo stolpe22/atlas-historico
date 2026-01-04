@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     
     # Wikidata
     wikidata_url: str = "https://query.wikidata.org/sparql"
-    wikidata_timeout: int = 30
+    wikidata_timeout: int = 120
     wikidata_delay: float = 0.5
     
     # Population
