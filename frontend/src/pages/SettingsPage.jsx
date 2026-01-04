@@ -1,13 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Database, Trash2, RefreshCw, Server, Terminal, Globe } from 'lucide-react';
+import { Settings, Database, Trash2, RefreshCw, Server, Terminal, Globe, Plus, X, Key, CheckCircle } from 'lucide-react';
 import { settingsApi, kaggleApi } from '../services/api';
 
+// --- MODAL PARA ADICIONAR INTEGRAÇÃO ---
+const AddIntegrationModal = ({ isOpen, onClose, onSave }) => {
+  const [config, setConfig] = useState({ username: 'admin', api_key: '' });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Key className="text-blue-500" size={20} /> Conectar Kaggle
+          </h3>
+          <button onClick={onClose}><X size={20} className="text-slate-400" /></button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Username (Opcional)</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              value={config.username}
+              onChange={e => setConfig({...config, username: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">API Token (Key)</label>
+            <input 
+              type="password" 
+              className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white font-mono"
+              placeholder="KGAT_..."
+              value={config.api_key}
+              onChange={e => setConfig({...config, api_key: e.target.value})}
+            />
+          </div>
+          <button 
+            onClick={() => onSave(config)}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
+          >
+            Salvar e Conectar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- PÁGINA PRINCIPAL ---
 const SettingsPage = () => {
   const [integrations, setIntegrations] = useState([]);
   const [geoStats, setGeoStats] = useState({ total_cities: 0 });
-  const [loading, setLoading] = useState(true);
   
-  // Estado do Sync
+  // Estados de Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  
+  // Estados de Sync (GeoNames)
   const [syncing, setSyncing] = useState(false);
   const [syncLogs, setSyncLogs] = useState([]);
   const [taskId, setTaskId] = useState(null);
@@ -26,13 +77,30 @@ const SettingsPage = () => {
       setGeoStats(geoRes.data);
     } catch (error) {
       console.error("Erro ao carregar settings", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if(!confirm("Tem certeza que deseja remover esta integração?")) return;
+  // --- LÓGICA DO KAGGLE ---
+  // Verifica se já existe integração do Kaggle salva
+  const kaggleIntegration = integrations.find(i => i.username); // Assumindo que o backend retorna lista
+
+  const handleSaveKaggle = async (config) => {
+    try {
+      await kaggleApi.saveConfig({
+        name: "Kaggle Principal",
+        username: config.username || "admin",
+        api_key: config.api_key
+      });
+      setShowAddModal(false);
+      loadData(); // Atualiza a lista
+      alert("Integração salva com sucesso!");
+    } catch (error) {
+      alert("Erro ao salvar: " + error.message);
+    }
+  };
+
+  const handleDeleteIntegration = async (id) => {
+    if(!confirm("Tem certeza que deseja desconectar esta integração?")) return;
     try {
       await settingsApi.deleteIntegration(id);
       loadData(); 
@@ -41,6 +109,7 @@ const SettingsPage = () => {
     }
   };
 
+  // --- LÓGICA DO GEONAMES ---
   const handleSyncGeonames = async () => {
     try {
       setSyncing(true);
@@ -60,15 +129,12 @@ const SettingsPage = () => {
         try {
           const res = await kaggleApi.getStatus(taskId);
           if (res.data.logs) setSyncLogs(res.data.logs);
-          
           if (res.data.status === 'completed' || res.data.status === 'error') {
             setSyncing(false);
             setTaskId(null);
             loadData();
           }
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -86,52 +152,63 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      {/* Card 1: Integrações */}
+      {/* SEÇÃO 1: INTEGRAÇÕES (Predefinidas) */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
           <h2 className="text-lg font-bold flex items-center gap-2">
-            <Server size={20} className="text-blue-500" /> Integrações Externas
+            <Server size={20} className="text-blue-500" /> Integrações
           </h2>
         </div>
+        
         <div className="p-6">
-          {integrations.length === 0 ? (
-            <p className="text-slate-500 italic">Nenhuma integração configurada (ex: Kaggle).</p>
-          ) : (
-            <div className="space-y-4">
-              {integrations.map(integ => (
-                <div key={integ.id} className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600">
-                  <div className="flex items-center gap-4">
-                    <img src="https://www.kaggle.com/static/images/site-logo.svg" className="w-8 h-8 opacity-80" alt="Kaggle" />
-                    <div>
-                      <p className="font-bold text-slate-700 dark:text-slate-200">Kaggle API</p>
-                      <p className="text-sm text-slate-500">Usuário: {integ.username}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {integ.is_active && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">Ativo</span>}
-                    <button 
-                      onClick={() => handleDelete(integ.id)}
-                      className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition"
-                      title="Remover Integração"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {/* Card do Kaggle (Fixo) */}
+          <div className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/20">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-white rounded shadow-sm">
+                <img src="https://www.kaggle.com/static/images/site-logo.svg" className="w-8 h-8" alt="Kaggle" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                  Kaggle API
+                  {kaggleIntegration && <CheckCircle size={14} className="text-green-500" />}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {kaggleIntegration 
+                    ? `Conectado como: ${kaggleIntegration.username}` 
+                    : "Importação de datasets massivos"}
+                </p>
+              </div>
             </div>
-          )}
+
+            <div>
+              {kaggleIntegration ? (
+                <button 
+                  onClick={() => handleDeleteIntegration(kaggleIntegration.id)}
+                  className="px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 rounded-lg text-sm font-bold border border-red-200 dark:border-red-800 transition"
+                >
+                  Desconectar / Excluir
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/30 flex items-center gap-2"
+                >
+                  <Plus size={16} /> Conectar
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Card 2: Dados Offline (GeoNames) */}
+      {/* SEÇÃO 2: DADOS OFFLINE (GeoNames) */}
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Globe size={20} className="text-green-500" /> Banco de Dados Offline
           </h2>
           <div className="text-sm text-slate-500">
-            Fonte: <a href="http://www.geonames.org/" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">GeoNames</a>
+            Fonte: GeoNames
           </div>
         </div>
         
@@ -155,7 +232,6 @@ const SettingsPage = () => {
             </button>
           </div>
 
-          {/* Terminal de Logs do Sync */}
           {(syncing || syncLogs.length > 0) && (
             <div className="bg-slate-950 rounded-lg p-4 font-mono text-xs max-h-48 overflow-y-auto border border-slate-800 shadow-inner custom-scrollbar">
                <div className="text-green-500 mb-2 flex items-center gap-2 font-bold sticky top-0 bg-slate-950">
@@ -171,6 +247,11 @@ const SettingsPage = () => {
         </div>
       </div>
 
+      <AddIntegrationModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSave={handleSaveKaggle} 
+      />
     </div>
   );
 };

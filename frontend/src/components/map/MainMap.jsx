@@ -29,24 +29,10 @@ const MAP_LAYERS = {
   }
 };
 
-const AddingModeOverlay = ({ onCancel }) => (
-  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[5000] bg-brand-600 text-white px-6 py-3 rounded-full shadow-xl font-bold animate-bounce cursor-default flex items-center gap-3">
-    <MapIcon size={20} />
-    Clique no mapa para definir o local
-    <button 
-      onClick={onCancel} 
-      className="bg-white/20 hover:bg-white/40 rounded-full p-1 ml-2"
-    >
-      <X size={14} />
-    </button>
-  </div>
-);
-
 const MainMap = ({ 
   events, 
   focusPosition, 
   isAddingMode, 
-  setIsAddingMode, 
   onMapClick, 
   onMarkerClick 
 }) => {
@@ -76,10 +62,7 @@ const MainMap = ({
 
   return (
     <div className={mapContainerClasses}>
-      {isAddingMode && (
-        <AddingModeOverlay onCancel={() => setIsAddingMode(false)} />
-      )}
-
+      
       <MapContainer 
         center={MAP_CONFIG.center} 
         zoom={MAP_CONFIG.zoom} 

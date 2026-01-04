@@ -1,16 +1,17 @@
-import React from 'react';
-import { Settings, Database, Play, ChevronRight, Calendar, FileJson } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Database, Play, ChevronRight, Calendar, FileJson, Download, ChevronDown, ChevronUp } from 'lucide-react';
 
 const Sidebar = ({ 
   events = [], 
   onEventClick, 
-  onRunSeed,
+  onRunSeed, 
   onOpenPopulate,
   onOpenKaggle
 }) => {
+  // Estado para controlar o menu "Obter Dados"
+  const [isImportMenuOpen, setIsImportMenuOpen] = useState(false);
+
   return (
-    // REMOVIDO: absolute top-0 right-0 z-[500]
-    // ADICIONADO: h-full w-80 flex-none (não encolhe nem estica além de 80)
     <aside className="h-full w-80 flex-none bg-white dark:bg-slate-900 shadow-xl border-l border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-300 z-20">
       
       {/* Header */}
@@ -31,7 +32,7 @@ const Sidebar = ({
         {events.length === 0 ? (
           <div className="text-center py-10 text-slate-400">
             <p className="mb-2">Nenhum evento aqui.</p>
-            <p className="text-xs">Use os botões abaixo para popular.</p>
+            <p className="text-xs">Clique em "Obter Dados" abaixo.</p>
           </div>
         ) : (
           events.map((evt) => (
@@ -59,31 +60,63 @@ const Sidebar = ({
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer: Menu de Importação */}
       <div className="flex-none p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-2">
+        
+        {/* Botão Principal */}
         <button 
-          onClick={onRunSeed}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold transition"
+          onClick={() => setIsImportMenuOpen(!isImportMenuOpen)}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-bold transition shadow-sm border ${
+            isImportMenuOpen 
+              ? 'bg-blue-50 dark:bg-slate-800 border-blue-200 text-blue-600' 
+              : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50'
+          }`}
         >
-          <FileJson size={16} className="text-orange-500" />
-          Restaurar JSON
+          <div className="flex items-center gap-2">
+            <Download size={18} />
+            Obter Dados
+          </div>
+          {isImportMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
 
-        <button 
-          onClick={onOpenPopulate}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition"
-        >
-          <Database size={16} className="text-purple-500" />
-          Gerador
-        </button>
-        
-        <button 
-          onClick={onOpenKaggle}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-md shadow-blue-500/20"
-        >
-          <Play size={16} />
-          Importar Kaggle
-        </button>
+        {/* Menu Accordion */}
+        {isImportMenuOpen && (
+          <div className="space-y-2 animate-in slide-in-from-bottom-2 fade-in duration-200 pt-2 pl-2 border-l-2 border-slate-200 dark:border-slate-700 ml-2">
+            
+            <button 
+              onClick={onRunSeed}
+              className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
+            >
+              <FileJson size={16} className="text-orange-500" />
+              <div>
+                <span className="font-medium block">Restaurar Local</span>
+                <span className="text-[10px] opacity-70">manual_events.json</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={onOpenPopulate}
+              className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
+            >
+              <Database size={16} className="text-purple-500" />
+               <div>
+                <span className="font-medium block">Gerador (Wikidata)</span>
+                <span className="text-[10px] opacity-70">Extração online</span>
+              </div>
+            </button>
+            
+            <button 
+              onClick={onOpenKaggle}
+              className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
+            >
+              <Play size={16} className="text-blue-500" />
+               <div>
+                <span className="font-medium block">Kaggle Import</span>
+                <span className="text-[10px] opacity-70">Datasets massivos</span>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
