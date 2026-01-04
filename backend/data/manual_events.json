@@ -2,6 +2,7 @@
   {
     "name": "Invenção da Escrita",
     "year_start": -3200,
+    "year_end": -3000,
     "latitude": 32.53,
     "longitude": 44.42,
     "continent": "Ásia",
@@ -10,8 +11,31 @@
     "is_manual": false
   },
   {
+    "name": "Unificação do Egito por Narmer",
+    "year_start": -3100,
+    "year_end": -3100,
+    "latitude": 25.7,
+    "longitude": 32.6,
+    "continent": "África",
+    "description": "O primeiro faraó unifica o Alto e Baixo Egito.",
+    "content": "A unificação sob o faraó Narmer estabeleceu a base para uma das civilizações mais duradouras da história humana. Este evento permitiu a coordenação de grandes projetos de irrigação no Nilo e a construção de uma identidade cultural e administrativa centralizada que duraria milênios.",
+    "is_manual": false
+  },
+  {
+    "name": "Civilização de Caral-Supe",
+    "year_start": -3000,
+    "year_end": -1800,
+    "latitude": -10.89,
+    "longitude": -77.61,
+    "continent": "América do Sul",
+    "description": "A cidade mais antiga das Américas floresce no Peru.",
+    "content": "Caral é a cidade mais antiga conhecida nas Américas. Localizada no Vale do Supe, no Peru, a civilização Caral desenvolveu complexas estruturas piramidais e sistemas de irrigação sem o uso de cerâmica ou escrita formal, baseando-se no sistema de quipos para contabilidade.",
+    "is_manual": false
+  },
+  {
     "name": "Construção das Pirâmides",
     "year_start": -2580,
+    "year_end": -2560,
     "latitude": 29.97,
     "longitude": 31.13,
     "continent": "África",
@@ -22,6 +46,7 @@
   {
     "name": "Código de Hamurabi",
     "year_start": -1754,
+    "year_end": -1754,
     "latitude": 32.53,
     "longitude": 44.42,
     "continent": "Ásia",
@@ -30,8 +55,20 @@
     "is_manual": false
   },
   {
+    "name": "Guerra de Troia",
+    "year_start": -1250,
+    "year_end": -1240,
+    "latitude": 39.95,
+    "longitude": 26.23,
+    "continent": "Europa",
+    "description": "Conflito épico entre gregos e troianos.",
+    "content": "Embora imortalizada pela Ilíada de Homero como um conflito movido por deuses e heróis, evidências arqueológicas indicam que Troia foi de fato um importante centro comercial sitiado por micênicos no final da Idade do Bronze, marcando o colapso de várias civilizações mediterrâneas.",
+    "is_manual": false
+  },
+  {
     "name": "Fundação de Roma",
     "year_start": -753,
+    "year_end": -753,
     "latitude": 41.9,
     "longitude": 12.49,
     "continent": "Europa",
@@ -42,6 +79,7 @@
   {
     "name": "Nascimento de Confúcio",
     "year_start": -551,
+    "year_end": -551,
     "latitude": 35.6,
     "longitude": 116.98,
     "continent": "Ásia",
@@ -52,6 +90,7 @@
   {
     "name": "Democracia Ateniense",
     "year_start": -508,
+    "year_end": -322,
     "latitude": 37.98,
     "longitude": 23.72,
     "continent": "Europa",
@@ -62,6 +101,7 @@
   {
     "name": "Alexandre, o Grande",
     "year_start": -334,
+    "year_end": -323,
     "latitude": 40.76,
     "longitude": 22.51,
     "continent": "Europa",
@@ -72,6 +112,7 @@
   {
     "name": "Muralha da China",
     "year_start": -221,
+    "year_end": 1644,
     "latitude": 40.43,
     "longitude": 116.57,
     "continent": "Ásia",
@@ -80,8 +121,20 @@
     "is_manual": false
   },
   {
+    "name": "Civilização de Nazca",
+    "year_start": -100,
+    "year_end": 800,
+    "latitude": -14.73,
+    "longitude": -75.13,
+    "continent": "América do Sul",
+    "description": "Criação dos geoglifos de Nazca no Peru.",
+    "content": "A cultura Nazca é famosa por seus enormes geoglifos desenhados no solo do deserto peruano. Esses desenhos, que variam de formas geométricas a animais complexos, só podem ser plenamente vistos do céu e permanecem um mistério arqueológico, embora teorias sugiram funções astronômicas ou rituais ligados à água.",
+    "is_manual": false
+  },
+  {
     "name": "Assassinato de Júlio César",
     "year_start": -44,
+    "year_end": -44,
     "latitude": 41.89,
     "longitude": 12.47,
     "continent": "Europa",
@@ -92,6 +145,7 @@
   {
     "name": "Nascimento de Jesus",
     "year_start": 0,
+    "year_end": 33,
     "latitude": 31.7,
     "longitude": 35.2,
     "continent": "Ásia",
@@ -100,8 +154,31 @@
     "is_manual": false
   },
   {
+    "name": "Erupção do Vesúvio",
+    "year_start": 79,
+    "year_end": 79,
+    "latitude": 40.82,
+    "longitude": 14.42,
+    "continent": "Europa",
+    "description": "Destruição de Pompeia e Herculano.",
+    "content": "A catastrófica erupção do Monte Vesúvio soterrou as cidades romanas de Pompeia e Herculano sob uma espessa camada de cinzas e material piroclástico. O evento preservou de forma quase perfeita a vida cotidiana do século I d.C., fornecendo aos arqueólogos uma visão incomparável da arquitetura, arte e costumes romanos.",
+    "is_manual": false
+  },
+  {
+    "name": "Apogeu dos Maias",
+    "year_start": 250,
+    "year_end": 900,
+    "latitude": 17.22,
+    "longitude": -89.62,
+    "continent": "América do Norte",
+    "description": "Período Clássico da civilização maia.",
+    "content": "Durante o Período Clássico, os Maias construíram cidades-estado monumentais como Tikal e Palenque. Eles desenvolveram o sistema de escrita mais avançado das Américas pré-colombianas, além de conhecimentos matemáticos sofisticados, incluindo o uso do zero, e um sistema de calendário astronômico extremamente preciso.",
+    "is_manual": false
+  },
+  {
     "name": "Queda de Roma",
     "year_start": 476,
+    "year_end": 476,
     "latitude": 41.9,
     "longitude": 12.49,
     "continent": "Europa",
@@ -112,6 +189,7 @@
   {
     "name": "Hégira de Maomé",
     "year_start": 622,
+    "year_end": 622,
     "latitude": 21.42,
     "longitude": 39.82,
     "continent": "Ásia",
@@ -122,6 +200,7 @@
   {
     "name": "Coroação de Carlos Magno",
     "year_start": 800,
+    "year_end": 814,
     "latitude": 41.9,
     "longitude": 12.45,
     "continent": "Europa",
@@ -130,8 +209,20 @@
     "is_manual": false
   },
   {
+    "name": "Povoamento da Nova Zelândia (Maori)",
+    "year_start": 1200,
+    "year_end": 1300,
+    "latitude": -41.0,
+    "longitude": 174.0,
+    "continent": "Oceania",
+    "description": "Navegadores polinésios chegam à Nova Zelândia.",
+    "content": "Viajando em grandes canoas de casco duplo, navegadores polinésios da região da Polinésia Oriental (Hawaiki) chegaram a Aotearoa (Nova Zelândia). Eles desenvolveram a cultura Maori única, baseada em forte organização tribal, tradições guerreiras, artes de escultura e tatuagem (Moko) e uma conexão profunda com a terra.",
+    "is_manual": false
+  },
+  {
     "name": "Cisma do Oriente",
     "year_start": 1054,
+    "year_end": 1054,
     "latitude": 41.0,
     "longitude": 28.97,
     "continent": "Europa",
@@ -142,6 +233,7 @@
   {
     "name": "Primeira Cruzada",
     "year_start": 1096,
+    "year_end": 1099,
     "latitude": 31.76,
     "longitude": 35.21,
     "continent": "Ásia",
@@ -152,6 +244,7 @@
   {
     "name": "Gengis Khan Unifica Mongóis",
     "year_start": 1206,
+    "year_end": 1227,
     "latitude": 47.91,
     "longitude": 106.91,
     "continent": "Ásia",
@@ -162,6 +255,7 @@
   {
     "name": "Magna Carta",
     "year_start": 1215,
+    "year_end": 1215,
     "latitude": 51.44,
     "longitude": -0.56,
     "continent": "Europa",
@@ -172,6 +266,7 @@
   {
     "name": "Peste Negra",
     "year_start": 1347,
+    "year_end": 1353,
     "latitude": 37.5,
     "longitude": 15.09,
     "continent": "Europa",
@@ -182,6 +277,7 @@
   {
     "name": "Queda de Constantinopla",
     "year_start": 1453,
+    "year_end": 1453,
     "latitude": 41.0,
     "longitude": 28.97,
     "continent": "Europa",
@@ -190,8 +286,20 @@
     "is_manual": false
   },
   {
+    "name": "Invenção da Prensa de Tipos Móveis",
+    "year_start": 1450,
+    "year_end": 1450,
+    "latitude": 49.99,
+    "longitude": 8.26,
+    "continent": "Europa",
+    "description": "Johannes Gutenberg revoluciona a impressão.",
+    "content": "A invenção de Gutenberg permitiu a produção em massa de livros, tornando a informação acessível a um público muito maior. A Bíblia de Gutenberg foi o primeiro grande livro impresso. Este avanço tecnológico foi o motor fundamental para o Renascimento, a Reforma Protestante e a Revolução Científica.",
+    "is_manual": false
+  },
+  {
     "name": "Descobrimento da América",
     "year_start": 1492,
+    "year_end": 1492,
     "latitude": 24.12,
     "longitude": -74.46,
     "continent": "América do Norte",
@@ -202,6 +310,7 @@
   {
     "name": "Tratado de Tordesilhas",
     "year_start": 1494,
+    "year_end": 1494,
     "latitude": 41.56,
     "longitude": -4.72,
     "continent": "Europa",
@@ -212,6 +321,7 @@
   {
     "name": "Chegada ao Brasil",
     "year_start": 1500,
+    "year_end": 1500,
     "latitude": -16.44,
     "longitude": -39.06,
     "continent": "América do Sul",
@@ -220,8 +330,20 @@
     "is_manual": false
   },
   {
+    "name": "Apogeu do Império Inca em Machu Picchu",
+    "year_start": 1450,
+    "year_end": 1533,
+    "latitude": -13.16,
+    "longitude": -72.54,
+    "continent": "América do Sul",
+    "description": "Construção da cidadela de Machu Picchu.",
+    "content": "Machu Picchu foi construída no auge do Império Inca, sob as ordens do imperador Pachacuti. Localizada no topo de uma montanha, a cidade é um triunfo da engenharia inca, com terraços agrícolas, templos astronômicos e sistemas de canais de água. Ela servia como refúgio real e centro religioso, permanecendo oculta dos colonizadores espanhóis por séculos.",
+    "is_manual": false
+  },
+  {
     "name": "Teses de Lutero",
     "year_start": 1517,
+    "year_end": 1517,
     "latitude": 51.86,
     "longitude": 12.64,
     "continent": "Europa",
@@ -232,6 +354,7 @@
   {
     "name": "Queda de Tenochtitlan",
     "year_start": 1521,
+    "year_end": 1521,
     "latitude": 19.43,
     "longitude": -99.13,
     "continent": "América do Norte",
@@ -242,6 +365,7 @@
   {
     "name": "Queda dos Incas",
     "year_start": 1533,
+    "year_end": 1572,
     "latitude": -13.53,
     "longitude": -71.96,
     "continent": "América do Sul",
@@ -252,6 +376,7 @@
   {
     "name": "Fundação de São Paulo",
     "year_start": 1554,
+    "year_end": 1554,
     "latitude": -23.55,
     "longitude": -46.63,
     "continent": "América do Sul",
@@ -260,8 +385,20 @@
     "is_manual": false
   },
   {
+    "name": "Estabelecimento do Xogunato Tokugawa",
+    "year_start": 1603,
+    "year_end": 1868,
+    "latitude": 35.68,
+    "longitude": 139.75,
+    "continent": "Ásia",
+    "description": "Início do período Edo no Japão.",
+    "content": "Após a Batalha de Sekigahara, Tokugawa Ieyasu estabeleceu um governo militar centralizado no Japão. Este período foi marcado por estabilidade política, crescimento econômico e uma política de isolamento nacional (Sakoku), onde o contato com o exterior era extremamente limitado. Foi a era de ouro dos Samurais e do desenvolvimento das artes tradicionais japonesas.",
+    "is_manual": false
+  },
+  {
     "name": "Revolução Industrial",
     "year_start": 1760,
+    "year_end": 1840,
     "latitude": 53.48,
     "longitude": -2.24,
     "continent": "Europa",
@@ -272,6 +409,7 @@
   {
     "name": "Independência dos EUA",
     "year_start": 1776,
+    "year_end": 1783,
     "latitude": 39.95,
     "longitude": -75.16,
     "continent": "América do Norte",
@@ -282,6 +420,7 @@
   {
     "name": "Revolução Francesa",
     "year_start": 1789,
+    "year_end": 1799,
     "latitude": 48.85,
     "longitude": 2.35,
     "continent": "Europa",
@@ -292,6 +431,7 @@
   {
     "name": "Vinda da Família Real",
     "year_start": 1808,
+    "year_end": 1808,
     "latitude": -22.9,
     "longitude": -43.17,
     "continent": "América do Sul",
@@ -302,6 +442,7 @@
   {
     "name": "Batalha de Waterloo",
     "year_start": 1815,
+    "year_end": 1815,
     "latitude": 50.68,
     "longitude": 4.41,
     "continent": "Europa",
@@ -312,6 +453,7 @@
   {
     "name": "Independência do Brasil",
     "year_start": 1822,
+    "year_end": 1822,
     "latitude": -23.59,
     "longitude": -46.6,
     "continent": "América do Sul",
@@ -322,6 +464,7 @@
   {
     "name": "Guerra do Ópio",
     "year_start": 1839,
+    "year_end": 1842,
     "latitude": 23.12,
     "longitude": 113.26,
     "continent": "Ásia",
@@ -332,6 +475,7 @@
   {
     "name": "Guerra Civil Americana",
     "year_start": 1861,
+    "year_end": 1865,
     "latitude": 38.89,
     "longitude": -77.03,
     "continent": "América do Norte",
@@ -342,6 +486,7 @@
   {
     "name": "Guerra do Paraguai",
     "year_start": 1864,
+    "year_end": 1870,
     "latitude": -25.26,
     "longitude": -57.57,
     "continent": "América do Sul",
@@ -352,6 +497,7 @@
   {
     "name": "Restauração Meiji",
     "year_start": 1868,
+    "year_end": 1868,
     "latitude": 35.68,
     "longitude": 139.76,
     "continent": "Ásia",
@@ -362,6 +508,7 @@
   {
     "name": "Conferência de Berlim",
     "year_start": 1884,
+    "year_end": 1885,
     "latitude": 52.52,
     "longitude": 13.4,
     "continent": "Europa",
@@ -372,6 +519,7 @@
   {
     "name": "Lei Áurea",
     "year_start": 1888,
+    "year_end": 1888,
     "latitude": -22.9,
     "longitude": -43.17,
     "continent": "América do Sul",
@@ -382,6 +530,7 @@
   {
     "name": "Proclamação da República",
     "year_start": 1889,
+    "year_end": 1889,
     "latitude": -22.9,
     "longitude": -43.17,
     "continent": "América do Sul",
@@ -392,6 +541,7 @@
   {
     "name": "Primeiro Voo do 14-Bis",
     "year_start": 1906,
+    "year_end": 1906,
     "latitude": 48.86,
     "longitude": 2.24,
     "continent": "Europa",
@@ -402,6 +552,7 @@
   {
     "name": "Primeira Guerra Mundial",
     "year_start": 1914,
+    "year_end": 1918,
     "latitude": 43.85,
     "longitude": 18.41,
     "continent": "Europa",
@@ -412,6 +563,7 @@
   {
     "name": "Revolução Russa",
     "year_start": 1917,
+    "year_end": 1923,
     "latitude": 59.93,
     "longitude": 30.33,
     "continent": "Europa",
@@ -422,16 +574,18 @@
   {
     "name": "Semana de Arte Moderna",
     "year_start": 1922,
+    "year_end": 1922,
     "latitude": -23.54,
     "longitude": -46.63,
     "continent": "América do Sul",
     "description": "Marco do modernismo brasileiro em São Paulo.",
-    "content": "Realizada no Theatro Municipal de São Paulo, a Semana de 22 rompeu com o academicismo e propôs uma arte genuinamente brasileira, livre de moldes europeus. Artistas como Tarsila do Amaral, Oswald de Andrade e Villa-Lobos introduziram o conceito de 'antropofagia' cultural: devorar a cultura estrangeira e reinvenção-la com identidade nacional.",
+    "content": "Realizada no Theatro Municipal de São Paulo, a Semana de 22 rompeu com o academicismo e propôs uma arte genuinamente brasileira, livre de moldes europeus. Artistas como Tarsila do Amaral, Oswald de Andrade e Villa-Lobos introduziram o concept de 'antropofagia' cultural: devorar a cultura estrangeira e reinvenção-la com identidade nacional.",
     "is_manual": false
   },
   {
     "name": "Quebra da Bolsa de NY",
     "year_start": 1929,
+    "year_end": 1929,
     "latitude": 40.7,
     "longitude": -74.0,
     "continent": "América do Norte",
@@ -442,6 +596,7 @@
   {
     "name": "Segunda Guerra Mundial",
     "year_start": 1939,
+    "year_end": 1945,
     "latitude": 52.22,
     "longitude": 21.01,
     "continent": "Europa",
@@ -452,6 +607,7 @@
   {
     "name": "Pearl Harbor",
     "year_start": 1941,
+    "year_end": 1941,
     "latitude": 21.34,
     "longitude": -157.94,
     "continent": "América do Norte",
@@ -462,6 +618,7 @@
   {
     "name": "Dia D",
     "year_start": 1944,
+    "year_end": 1944,
     "latitude": 49.33,
     "longitude": -0.55,
     "continent": "Europa",
@@ -472,6 +629,7 @@
   {
     "name": "Bomba Atômica",
     "year_start": 1945,
+    "year_end": 1945,
     "latitude": 34.38,
     "longitude": 132.45,
     "continent": "Ásia",
@@ -482,6 +640,7 @@
   {
     "name": "Criação da ONU",
     "year_start": 1945,
+    "year_end": 1945,
     "latitude": 37.77,
     "longitude": -122.41,
     "continent": "América do Norte",
@@ -492,6 +651,7 @@
   {
     "name": "Independência da Índia",
     "year_start": 1947,
+    "year_end": 1947,
     "latitude": 28.61,
     "longitude": 77.2,
     "continent": "Ásia",
@@ -502,6 +662,7 @@
   {
     "name": "Criação de Israel",
     "year_start": 1948,
+    "year_end": 1948,
     "latitude": 32.08,
     "longitude": 34.78,
     "continent": "Ásia",
@@ -512,6 +673,7 @@
   {
     "name": "Revolução Chinesa",
     "year_start": 1949,
+    "year_end": 1949,
     "latitude": 39.9,
     "longitude": 116.4,
     "continent": "Ásia",
@@ -522,6 +684,7 @@
   {
     "name": "Guerra da Coreia",
     "year_start": 1950,
+    "year_end": 1953,
     "latitude": 38.0,
     "longitude": 127.0,
     "continent": "Ásia",
@@ -532,6 +695,7 @@
   {
     "name": "Suicídio de Getúlio Vargas",
     "year_start": 1954,
+    "year_end": 1954,
     "latitude": -22.93,
     "longitude": -43.17,
     "continent": "América do Sul",
@@ -542,6 +706,7 @@
   {
     "name": "Revolução Cubana",
     "year_start": 1959,
+    "year_end": 1959,
     "latitude": 23.11,
     "longitude": -82.36,
     "continent": "América do Norte",
@@ -552,6 +717,7 @@
   {
     "name": "Construção de Brasília",
     "year_start": 1960,
+    "year_end": 1960,
     "latitude": -15.79,
     "longitude": -47.88,
     "continent": "América do Sul",
@@ -562,6 +728,7 @@
   {
     "name": "Muro de Berlim",
     "year_start": 1961,
+    "year_end": 1989,
     "latitude": 52.51,
     "longitude": 13.37,
     "continent": "Europa",
@@ -572,6 +739,7 @@
   {
     "name": "Crise dos Mísseis",
     "year_start": 1962,
+    "year_end": 1962,
     "latitude": 22.0,
     "longitude": -80.0,
     "continent": "América do Norte",
@@ -582,6 +750,7 @@
   {
     "name": "Golpe Militar no Brasil",
     "year_start": 1964,
+    "year_end": 1985,
     "latitude": -22.9,
     "longitude": -43.17,
     "continent": "América do Sul",
@@ -592,6 +761,7 @@
   {
     "name": "Homem na Lua",
     "year_start": 1969,
+    "year_end": 1972,
     "latitude": 28.57,
     "longitude": -80.64,
     "continent": "América do Norte",
@@ -602,6 +772,7 @@
   {
     "name": "Fim da Guerra do Vietnã",
     "year_start": 1975,
+    "year_end": 1975,
     "latitude": 10.82,
     "longitude": 106.62,
     "continent": "Ásia",
@@ -612,6 +783,7 @@
   {
     "name": "Revolução Iraniana",
     "year_start": 1979,
+    "year_end": 1979,
     "latitude": 35.68,
     "longitude": 51.38,
     "continent": "Ásia",
@@ -622,6 +794,7 @@
   {
     "name": "Diretas Já",
     "year_start": 1984,
+    "year_end": 1985,
     "latitude": -23.55,
     "longitude": -46.63,
     "continent": "América do Sul",
@@ -632,6 +805,7 @@
   {
     "name": "Acidente de Chernobyl",
     "year_start": 1986,
+    "year_end": 1986,
     "latitude": 51.38,
     "longitude": 30.09,
     "continent": "Europa",
@@ -642,6 +816,7 @@
   {
     "name": "Queda do Muro de Berlim",
     "year_start": 1989,
+    "year_end": 1989,
     "latitude": 52.51,
     "longitude": 13.37,
     "continent": "Europa",
@@ -652,6 +827,7 @@
   {
     "name": "Fim da União Soviética",
     "year_start": 1991,
+    "year_end": 1991,
     "latitude": 55.75,
     "longitude": 37.61,
     "continent": "Europa",
@@ -662,6 +838,7 @@
   {
     "name": "Fim do Apartheid",
     "year_start": 1994,
+    "year_end": 1994,
     "latitude": -25.74,
     "longitude": 28.22,
     "continent": "África",
@@ -672,6 +849,7 @@
   {
     "name": "Plano Real",
     "year_start": 1994,
+    "year_end": 1994,
     "latitude": -15.79,
     "longitude": -47.88,
     "continent": "América do Sul",
@@ -682,6 +860,7 @@
   {
     "name": "Ataque de 11 de Setembro",
     "year_start": 2001,
+    "year_end": 2001,
     "latitude": 40.71,
     "longitude": -74.0,
     "continent": "América do Norte",
@@ -692,6 +871,7 @@
   {
     "name": "Primavera Árabe",
     "year_start": 2010,
+    "year_end": 2012,
     "latitude": 36.8,
     "longitude": 10.18,
     "continent": "África",
@@ -702,6 +882,7 @@
   {
     "name": "Acordo de Paris",
     "year_start": 2015,
+    "year_end": 2015,
     "latitude": 48.85,
     "longitude": 2.35,
     "continent": "Europa",
@@ -712,6 +893,7 @@
   {
     "name": "Pandemia de COVID-19",
     "year_start": 2019,
+    "year_end": 2023,
     "latitude": 30.59,
     "longitude": 114.3,
     "continent": "Ásia",
