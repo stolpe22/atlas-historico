@@ -34,14 +34,13 @@ class EventCreate(BaseModel):
     source: Optional[str] = "manual"
     
 class PopulateOptions(BaseModel):
-    mode: str
+    mode: str # Mantido para compatibilidade com JSON do frontend, mas ignorado na lógica
     continents: List[str]
     start_year: int
     end_year: int
 
-# --- LÓGICA DE NEGÓCIO (Reutilizável) ---
+# --- LÓGICA DE NEGÓCIO ---
 def calculate_period(year: int) -> str:
-    """Calcula o período histórico automaticamente baseado no ano."""
     if year < -4000: return "Pré-História"
     if year < 476: return "Idade Antiga"
     if year < 1453: return "Idade Média"
@@ -59,28 +58,19 @@ def update_population_status(message: str):
     print(f"STATUS: {message}")
 
 def run_population_logic(options: PopulateOptions):
-    print(f"--- INICIANDO: {options.mode} | {options.continents} ---")
+    print(f"--- INICIANDO EXTRAÇÃO: {options.continents} ({options.start_year}-{options.end_year}) ---")
     try:
-        # Passamos os argumentos novos!
-        if options.mode == "fast":
-            update_population_status("⚡ Iniciando Modo Turbo Personalizado...")
-            populate_final.run_fast_mode(
-                status_callback=update_population_status,
-                target_continents=options.continents,
-                start_year=options.start_year,
-                end_year=options.end_year
-            )
-        else:
-            # Se quiser implementar varredura real depois, usa a mesma lógica
-            update_population_status("🔍 Iniciando Varredura...")
-            populate_final.run_detailed_mode(
-                status_callback=update_population_status,
-                target_continents=options.continents,
-                start_year=options.start_year,
-                end_year=options.end_year
-            )
+        update_population_status("🔍 Inicializando Varredura...")
+        
+        # Chama a função única agora, sem if/else
+        populate_final.run_unified_logic(
+            status_callback=update_population_status,
+            target_continents=options.continents,
+            start_year=options.start_year,
+            end_year=options.end_year
+        )
 
-        update_population_status("🧹 Limpando duplicatas...")
+        update_population_status("🧹 Otimizando banco de dados...")
         deduplicate_smart.deduplicate_fuzzy()
         population_state["message"] = "✅ Concluído!"
 
@@ -89,24 +79,58 @@ def run_population_logic(options: PopulateOptions):
         population_state["message"] = f"Erro: {str(e)}"
     finally:
         population_state["is_running"] = False
+        
+        # Nova função auxiliar para rodar SÓ o seed
+def run_seed_logic():
+    try:
+        update_population_status("📂 Lendo arquivo de dados padrão...")
+        populate_final.populate_from_json_file(status_callback=update_population_status)
+        
+        update_population_status("🧹 Otimizando banco de dados...")
+        deduplicate_smart.deduplicate_fuzzy()
+        
+        population_state["message"] = "✅ Dados padrão inseridos!"
+    except Exception as e:
+        print(f"ERRO SEED: {e}")
+        population_state["message"] = f"Erro: {str(e)}"
+    finally:
+        population_state["is_running"] = False
 
 # --- ROTAS ---
+
+@app.post("/populate/seed")
+def trigger_seed(background_tasks: BackgroundTasks):
+    if population_state["is_running"]:
+        return {"status": "busy", "message": "Já existe um processo rodando."}
+
+    populate_final.reset_stop_flag()
+    population_state["is_running"] = True
+    population_state["message"] = "Iniciando Preset..."
+    
+    background_tasks.add_task(run_seed_logic)
+    return {"status": "started"}
 
 @app.post("/populate")
 def trigger_populate(options: PopulateOptions, background_tasks: BackgroundTasks):
     if population_state["is_running"]:
-        return {"status": "busy", "message": "Já existe um processo rodando."}
+        # Se forçar o início, reseta o estado anterior
+        populate_final.reset_stop_flag() 
 
     population_state["is_running"] = True
-    population_state["message"] = f"Configurando {options.mode}..."
-
-    # Passa as opções completas para a função
+    population_state["message"] = "Configurando..."
     background_tasks.add_task(run_population_logic, options)
-
     return {"status": "started"}
 
 @app.get("/populate/status")
 def get_status(): return population_state
+
+@app.post("/populate/stop")
+def stop_populate():
+    """Rota para o botão de cancelar chamar"""
+    print("🛑 Rota STOP chamada!")
+    populate_final.request_stop()
+    population_state["message"] = "🛑 Parando... Aguarde o fim da requisição atual."
+    return {"status": "Parada solicitada."}
 
 @app.get("/events")
 def get_events(start_year: int, end_year: int, continent: str = None, db: Session = Depends(database.get_db)):
@@ -128,10 +152,11 @@ def get_events(start_year: int, end_year: int, continent: str = None, db: Sessio
                 "id": event.id,
                 "name": event.name,
                 "description": event.description,
-                "content": event.content, # <--- GARANTINDO QUE VAI PRO FRONT
+                "content": event.content,
                 "year": event.year_start,
                 "period": event.period,
-                "continent": event.continent
+                "continent": event.continent,
+                "source": event.source
             }
         })
     return {"type": "FeatureCollection", "features": features}
@@ -150,7 +175,7 @@ def get_all(db: Session = Depends(database.get_db)):
             "period": e.period, 
             "description": e.description, 
             "content": e.content,
-            "source": e.source, # <--- Enviando a nova coluna
+            "source": e.source, 
             "latitude": s.y, 
             "longitude": s.x
         })
@@ -158,14 +183,26 @@ def get_all(db: Session = Depends(database.get_db)):
 
 @app.post("/events")
 def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
-    # Verifica duplicidade
+    # 1. Verifica se já existe pelo nome e ano
     exists = db.query(models.HistoricalEvent).filter(
         models.HistoricalEvent.name.ilike(event.name), 
         models.HistoricalEvent.year_start == event.year_start
     ).first()
-    if exists: return {"status": "skipped", "id": exists.id}
 
-    # LÓGICA INTELIGENTE: Se não veio período, calcula automático
+    # 2. SE EXISTIR: Verifica se devemos ATUALIZAR
+    if exists:
+        if (exists.source == "manual" or exists.source is None) and event.source in ["wikidata", "seed"]:
+            exists.source = event.source
+            exists.continent = event.continent 
+            if event.content and len(event.content) > len(exists.content or ""):
+                exists.content = event.content 
+            
+            db.commit()
+            return {"status": "updated", "id": exists.id, "msg": "Atualizado para Wikidata"}
+        
+        return {"status": "skipped", "id": exists.id}
+
+    # 3. SE NÃO EXISTIR: Cria novo
     final_period = event.period
     if not final_period:
         final_period = calculate_period(event.year_start)
@@ -181,19 +218,12 @@ def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
         continent=event.continent,
         period=final_period,
         source=event.source, 
-        
         location=wkt
     )
     db.add(db_event)
     db.commit()
     db.refresh(db_event)
     return {"status": "created", "name": db_event.name, "id": db_event.id}
-
-@app.post("/populate/stop")
-def stop_populate():
-    """Rota para o botão de cancelar chamar"""
-    populate_final.request_stop()
-    return {"status": "Parada solicitada. O processo encerrará em breve."}
 
 @app.delete("/events/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(database.get_db)):

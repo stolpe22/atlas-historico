@@ -90,7 +90,12 @@ const MainMap = ({
 
          <MapController isAddingMode={isAddingMode} onMapClick={onMapClick} />
 
-         <MarkerClusterGroup chunkedLoading iconCreateFunction={createClusterCustomIcon}>
+         <MarkerClusterGroup 
+            chunkedLoading 
+            iconCreateFunction={createClusterCustomIcon}
+            maxClusterRadius={60} // Aumente um pouco para agrupar mais agressivamente e reduzir elementos na tela
+            spiderfyOnMaxZoom={true}
+        >
            {events && events.features.map((feature) => (
              <Marker 
                key={feature.properties.id} 

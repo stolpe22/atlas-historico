@@ -2,50 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- RESET ESTRUTURAL --- */
+/* =========================================
+   1. UTILITÁRIOS PERSONALIZADOS (SCROLLBAR)
+   ========================================= */
+@layer utilities {
+  /* Scrollbar fina e moderna para Listas e Modais */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors;
+  }
+}
+
+/* =========================================
+   2. RESET ESTRUTURAL
+   ========================================= */
+html {
+  scroll-behavior: smooth; /* Rolagem suave global */
+}
+
 html, body, #root {
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: hidden; /* Impede scroll na janela principal, forçando uso dos containers internos */
 }
 
-/* --- LEAFLET OVERRIDES (O Tailwind não mexe aqui) --- */
+/* =========================================
+   3. LEAFLET OVERRIDES & CUSTOMIZAÇÃO
+   ========================================= */
 .leaflet-container {
   width: 100%;
   height: 100% !important;
-  background-color: #aad3df; /* Cor do mar padrão */
+  background-color: #aad3df; /* Cor do mar padrão (Tema Claro) */
   z-index: 0;
+  outline: none; /* Remove borda azul de foco ao clicar no mapa */
 }
 
-/* Ajuste para o mapa escuro não ficar cinza antes de carregar */
+/* Ajuste para o fundo do mapa no Modo Escuro (antes dos tiles carregarem) */
 .dark .leaflet-container {
   background-color: #1e293b; 
 }
 
-/* Customizações dos Popups e Labels (Mantivemos do CSS antigo) */
-.custom-map-label { background: transparent !important; border: none !important; }
+/* Remove estilos padrão que atrapalham nossos marcadores customizados */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
 
+/* --- Estilo dos Labels Personalizados (Marker) --- */
 .label-content {
   background-color: white;
   @apply border border-brand-600 rounded-md shadow-md px-2 py-1 text-center font-bold text-xs text-slate-800;
-  width: max-content; max-width: 180px; white-space: normal;
-  position: relative; left: 50%; transform: translateX(-50%);
+  width: max-content; 
+  max-width: 180px; 
+  white-space: normal;
+  position: relative; 
+  left: 50%; 
+  transform: translateX(-50%);
+  transition: all 0.2s ease;
 }
+
 .dark .label-content {
   @apply bg-slate-800 border-slate-600 text-slate-100;
 }
 
-/* Setinha do label */
+/* Setinha do label apontando para baixo */
 .label-content::after {
-  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  content: ''; 
+  position: absolute; 
+  bottom: -6px; 
+  left: 50%; 
+  transform: translateX(-50%);
+  width: 0; 
+  height: 0;
+  border-left: 6px solid transparent; 
+  border-right: 6px solid transparent;
   border-top: 6px solid #0284c7; /* brand-600 */
 }
-.dark .label-content::after { border-top-color: #475569; }
 
-/* Cluster */
-.custom-marker-cluster {
-  @apply bg-brand-600 text-white flex items-center justify-center rounded-full border-4 border-white/50 shadow-lg font-bold text-sm transition-transform;
+.dark .label-content::after { 
+  border-top-color: #475569; /* slate-600 */
 }
-.custom-marker-cluster:hover { transform: scale(1.1); }
+
+/* Efeito Hover no Marker (Opcional, dá um destaque extra) */
+.group:hover .label-content {
+  @apply border-brand-500 shadow-lg;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* --- Estilo dos Clusters (Agrupamentos) --- */
+.custom-marker-cluster {
+  /* Adicionei 'animate-in' para suavizar quando o cluster aparece */
+  @apply bg-brand-600 text-white flex items-center justify-center rounded-full border-4 border-white/50 dark:border-slate-900/50 shadow-xl font-bold text-sm transition-transform cursor-pointer;
+}
+
+.custom-marker-cluster:hover { 
+  transform: scale(1.15); 
+  @apply bg-brand-500 border-white;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
+import api from './services/api';
+
 import 'leaflet/dist/leaflet.css'
 import 'rc-slider/assets/index.css'
 
@@ -8,7 +9,8 @@ import Header from './components/layout/Header'
 import MainMap from './components/map/MainMap' 
 import ListView from './components/list/ListView'
 import EventModal from './components/modals/EventModal'
-import { ConfirmModal, NotificationModal, PopulateModal } from './components/modals/SupportModals'
+import { ConfirmModal, NotificationModal } from './components/modals/SupportModals'
+import { PopulateModal } from './components/modals/PopulateModal' // Importando do arquivo novo
 
 // --- HOOKS E UTILITÁRIOS ---
 import { useTheme } from './useTheme'
@@ -78,11 +80,11 @@ function App() {
   // CARREGAMENTO DE DADOS (FETCHING)
   // ==========================================================================
   const refreshData = () => {
-    axios.get('http://localhost:8000/events/all').then(res => setAllEvents(res.data));
+    api.get('/events/all').then(res => setAllEvents(res.data));
     
-    let url = `http://localhost:8000/events?start_year=${dateRange[0]}&end_year=${dateRange[1]}`
+    let url = `/events?start_year=${dateRange[0]}&end_year=${dateRange[1]}`
     if (selectedContinent !== "Todos") url += `&continent=${selectedContinent}`;
-    axios.get(url).then(res => setMapEvents(res.data));
+    api.get(url).then(res => setMapEvents(res.data));
   };
 
   useEffect(() => { refreshData(); }, [dateRange, selectedContinent]);
@@ -103,7 +105,7 @@ function App() {
     if (isPopulating) {
       interval = setInterval(async () => {
         try {
-          const res = await axios.get('http://localhost:8000/populate/status');
+          const res = await api.get('/populate/status');
           const newMessage = res.data.message;
           
           // Adiciona ao log apenas se for mensagem nova
@@ -141,7 +143,7 @@ function App() {
   const runPopulate = async (config) => {
     // NÃO FECHAR O MODAL AQUI. Deixe ele aberto para ver o log.
     try {
-        await axios.post('http://localhost:8000/populate', {
+        await api.post('/populate', {
             mode: populateMode, 
             continents: config.continents, 
             start_year: config.start_year, 
@@ -156,13 +158,33 @@ function App() {
     }
   };
 
+  // NOVA FUNÇÃO: Dispara o Preset
+  const handleRunSeed = async () => {
+    setShowMenu(false); // Fecha o menu
+    try {
+      await api.post('/populate/seed');
+      
+      // Ativa o modo de "Populating" para mostrar o feedback visual no canto da tela
+      setIsPopulating(true);
+      setPopulateLogs(["📂 Iniciando carga de dados padrão...", "Aguarde..."]);
+    } catch (error) {
+      setNotification({ type: 'error', title: 'Erro', message: 'Falha ao iniciar preset.' });
+    }
+  };
+
+  // Parar Extração
   // Parar Extração
   const handleStopPopulate = async () => {
     try {
-      setPopulateLogs(prev => [...prev, "🛑 Solicitando cancelamento imediato..."]); 
-      await fetch('http://localhost:8000/populate/stop', { method: 'POST' });
+      // Feedback visual imediato no log antes mesmo da requisição ir
+      setPopulateLogs(prev => [...prev, "🛑 Enviando sinal de parada..."]); 
+      
+      await api.post('/populate/stop');
+      
+      setPopulateLogs(prev => [...prev, "⏳ Aguardando a Wikidata liberar o processo..."]);
     } catch (error) {
       console.error("Erro ao tentar parar:", error);
+      setNotification({ type: 'error', title: 'Erro', message: 'Não foi possível parar.' });
     }
   };
 
@@ -201,7 +223,7 @@ function App() {
         return;
     }
     try {
-      await axios.post('http://localhost:8000/events', newEvent);
+      await api.post('/events', newEvent);
       setNotification({ type: 'success', title: 'Salvo!', message: 'Evento registrado com sucesso.' });
       setShowModal(false);
       refreshData();
@@ -226,7 +248,7 @@ function App() {
     if (!deleteData) return;
     setIsDeleting(true);
     try {
-      await axios.delete(`http://localhost:8000/events/${deleteData.id}`);
+      await api.delete(`/events/${deleteData.id}`);
       setAllEvents(prev => prev.filter(e => e.id !== deleteData.id));
       setDeleteData(null); 
       setMapEvents(prev => {
@@ -319,16 +341,40 @@ function App() {
       </main>
 
       {/* 3. SIDEBAR DIREITA */}
-      <aside className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-20 shadow-xl">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+      <aside className="...">
+        <div className="p-6 border-b ... flex justify-between items-center ...">
            <h2 className="font-bold text-lg">Cronologia</h2>
            <div className="relative">
-             <button onClick={() => setShowMenu(!showMenu)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"><Settings size={20}/></button>
+             <button onClick={() => setShowMenu(!showMenu)} className="..."><Settings size={20}/></button>
+             
+             {/* MENU DROPDOWN ATUALIZADO */}
              {showMenu && (
-                <div className="absolute right-0 top-10 w-56 bg-white dark:bg-slate-700 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-600 p-2 flex flex-col gap-1 z-50">
-                    <MenuBtn onClick={() => openPopulateConfig('fast')} icon={<Download size={16}/>} label="Buscar Wikidata" />
+                <div className="absolute right-0 top-10 w-64 bg-white dark:bg-slate-700 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-600 p-2 flex flex-col gap-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    
+                    {/* BOTÃO 1: DADOS PADRÃO */}
+                    <MenuBtn 
+                        onClick={handleRunSeed} 
+                        icon={<Database size={16} className="text-purple-500"/>} 
+                        label="Inserir Dados Padrão (Seed)" 
+                    />
+                    
                     <div className="h-px bg-slate-100 dark:bg-slate-600 my-1"></div>
-                    <MenuBtn onClick={() => fileInputRef.current.click()} icon={<Plus size={16}/>} label="Importar JSON" />
+
+                    {/* BOTÃO 2: WIKIDATA */}
+                    <MenuBtn 
+                        onClick={() => openPopulateConfig('fast')} 
+                        icon={<Download size={16} className="text-blue-500"/>} 
+                        label="Extrair da Wikidata (Robô)" 
+                    />
+
+                    <div className="h-px bg-slate-100 dark:bg-slate-600 my-1"></div>
+                    
+                    {/* BOTÃO 3: IMPORTAR JSON (Arquivo local) */}
+                    <MenuBtn 
+                        onClick={() => fileInputRef.current.click()} 
+                        icon={<Plus size={16} className="text-green-500"/>} 
+                        label="Importar Arquivo JSON" 
+                    />
                     <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={() => {}} />
                 </div>
              )}
