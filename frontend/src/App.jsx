@@ -3,7 +3,7 @@ import axios from 'axios'
 import 'leaflet/dist/leaflet.css'
 import 'rc-slider/assets/index.css'
 
-// --- COMPONENTES REFATORADOS ---
+// --- COMPONENTES ---
 import Header from './components/layout/Header'
 import MainMap from './components/map/MainMap' 
 import ListView from './components/list/ListView'
@@ -13,8 +13,8 @@ import { ConfirmModal, NotificationModal, PopulateModal } from './components/mod
 // --- HOOKS E UTILITÁRIOS ---
 import { useTheme } from './useTheme'
 
-// --- ÍCONES UI (Para Sidebar e Menu) ---
-import { Map as MapIcon, List, Plus, Settings, Moon, Sun, Download, Database, X, Monitor } from 'lucide-react'
+// --- ÍCONES UI (Adicionado Square para o botão de Stop) ---
+import { Map as MapIcon, List, Plus, Settings, Moon, Sun, Download, Database, X, Monitor, Square } from 'lucide-react'
 
 // ============================================================================
 // COMPONENTES AUXILIARES (BOTÕES DA SIDEBAR)
@@ -51,7 +51,9 @@ function App() {
   const [focusPosition, setFocusPosition] = useState(null)
   const [isAddingMode, setIsAddingMode] = useState(false) 
   const [showMenu, setShowMenu] = useState(false)
-  const [populateStatus, setPopulateStatus] = useState(""); 
+  
+  // --- NOVO SISTEMA DE LOGS DO ROBÔ ---
+  const [populateLogs, setPopulateLogs] = useState([]); // Array para o terminal
   const [isPopulating, setIsPopulating] = useState(false)
   
   // --- ESTADOS DE MODAIS ---
@@ -76,19 +78,15 @@ function App() {
   // CARREGAMENTO DE DADOS (FETCHING)
   // ==========================================================================
   const refreshData = () => {
-    // 1. Busca lista completa para a Tabela e Sidebar
     axios.get('http://localhost:8000/events/all').then(res => setAllEvents(res.data));
     
-    // 2. Busca GeoJSON filtrado para o Mapa
     let url = `http://localhost:8000/events?start_year=${dateRange[0]}&end_year=${dateRange[1]}`
     if (selectedContinent !== "Todos") url += `&continent=${selectedContinent}`;
     axios.get(url).then(res => setMapEvents(res.data));
   };
 
-  // Recarrega sempre que o filtro muda
   useEffect(() => { refreshData(); }, [dateRange, selectedContinent]);
 
-  // Filtro local para a Tabela e Sidebar (baseado em allEvents)
   const filteredEvents = allEvents.filter(e => {
     const matchesContinent = selectedContinent === "Todos" || e.continent === selectedContinent;
     const matchesDate = e.year_start >= dateRange[0] && e.year_start <= dateRange[1];
@@ -98,43 +96,50 @@ function App() {
   });
 
   // ==========================================================================
-  // LÓGICA DE POPULAÇÃO (ROBÔ)
+  // LÓGICA DE POPULAÇÃO (ROBÔ - POLLING)
   // ==========================================================================
-  
-  // Monitoramento de Status (Polling)
   useEffect(() => {
     let interval;
     if (isPopulating) {
       interval = setInterval(async () => {
         try {
           const res = await axios.get('http://localhost:8000/populate/status');
-          setPopulateStatus(res.data.message);
+          const newMessage = res.data.message;
           
-          // Atualiza o mapa em tempo real para ver os pinos chegando
+          // Adiciona ao log apenas se for mensagem nova
+          setPopulateLogs(prevLogs => {
+             const lastLog = prevLogs[prevLogs.length - 1];
+             if (newMessage && newMessage !== lastLog) {
+                 return [...prevLogs, newMessage];
+             }
+             return prevLogs;
+          });
+
           refreshData(); 
 
           if (res.data.is_running === false) {
              setIsPopulating(false);
-             setPopulateStatus(""); 
+             // Fecha modal e reseta logs no final
+             setShowPopulateModal(false); 
              setNotification({ type: 'success', title: 'Concluído!', message: res.data.message });
-             refreshData(); // Refresh final
+             refreshData(); 
           }
         } catch (e) { console.error(e); }
-      }, 2000);
+      }, 1500);
     }
     return () => clearInterval(interval);
-  }, [isPopulating, dateRange, selectedContinent]);
+  }, [isPopulating]);
 
-  // Abre o Modal de Configuração
+  // Abre Modal
   const openPopulateConfig = (mode) => {
     setPopulateMode(mode);
     setShowMenu(false);
     setShowPopulateModal(true);
   };
 
-  // Dispara o Processo (Chamado pelo Modal)
+  // Iniciar Extração
   const runPopulate = async (config) => {
-    setShowPopulateModal(false);
+    // NÃO FECHAR O MODAL AQUI. Deixe ele aberto para ver o log.
     try {
         await axios.post('http://localhost:8000/populate', {
             mode: populateMode, 
@@ -144,18 +149,27 @@ function App() {
         });
         
         setIsPopulating(true);
-        setPopulateStatus("Enviando configuração...");
-        setNotification({ type: 'info', title: 'Iniciando', message: 'O robô iniciou a busca conforme sua configuração.' });
+        setPopulateLogs(["🚀 Inicializando subsistemas...", "⏳ Enviando configuração ao servidor..."]);
     } catch (error) {
         setNotification({ type: 'error', title: 'Erro', message: 'Falha ao iniciar o processo.' });
+        setIsPopulating(false);
+    }
+  };
+
+  // Parar Extração
+  const handleStopPopulate = async () => {
+    try {
+      setPopulateLogs(prev => [...prev, "🛑 Solicitando cancelamento imediato..."]); 
+      await fetch('http://localhost:8000/populate/stop', { method: 'POST' });
+    } catch (error) {
+      console.error("Erro ao tentar parar:", error);
     }
   };
 
   // ==========================================================================
-  // HANDLERS (AÇÕES DO USUÁRIO)
+  // HANDLERS GERAIS
   // ==========================================================================
 
-  // Iniciar criação de novo evento
   const handleAddStart = () => {
     if (!showModal && !isAddingMode) {
         setNewEvent({ name: "", description: "", content: "", year_start: "", latitude: 0, longitude: 0, continent: "Outro" });
@@ -168,7 +182,6 @@ function App() {
     }
   };
 
-  // Clique no Mapa (Captura coordenada)
   const handleMapClick = (latlng) => {
     setIsAddingMode(false);
     setNewEvent(prev => ({ ...prev, latitude: latlng.lat, longitude: latlng.lng }));
@@ -176,14 +189,12 @@ function App() {
     setShowModal(true);
   };
 
-  // Clique num Marcador (Ver Detalhes)
   const handleMarkerClick = (eventData) => {
     setSelectedEvent(eventData);
     setModalMode("view");
     setShowModal(true);
   };
 
-  // Salvar Evento
   const handleSaveEvent = async () => {
     if (!newEvent.name || !newEvent.year_start) {
         setNotification({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
@@ -199,9 +210,7 @@ function App() {
     }
   };
 
-  // Pedir para deletar
   const requestDelete = (evt) => {
-    // MUDANÇA AQUI: verifica evt.source em vez de is_manual
     if (evt.source !== 'manual') {
         setNotification({ 
             type: 'warning', 
@@ -213,22 +222,17 @@ function App() {
     setDeleteData({ id: evt.id, name: evt.name });
   };
 
-  // Confirmar deleção
   const confirmDelete = async () => {
     if (!deleteData) return;
     setIsDeleting(true);
     try {
       await axios.delete(`http://localhost:8000/events/${deleteData.id}`);
-      
-      // Atualização otimista
       setAllEvents(prev => prev.filter(e => e.id !== deleteData.id));
       setDeleteData(null); 
-      
       setMapEvents(prev => {
-          if(!prev) return null;
-          return { ...prev, features: prev.features.filter(f => f.properties.id !== deleteData.id) }
+         if(!prev) return null;
+         return { ...prev, features: prev.features.filter(f => f.properties.id !== deleteData.id) }
       });
-      
       setNotification({ type: 'success', title: 'Apagado', message: 'Registro removido.' });
     } catch (error) {
       setNotification({ type: 'error', title: 'Erro', message: 'Falha ao apagar.' });
@@ -241,7 +245,7 @@ function App() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300">
       
-      {/* 1. SIDEBAR ESQUERDA (NAVEGAÇÃO) */}
+      {/* 1. SIDEBAR ESQUERDA */}
       <nav className="w-20 bg-slate-800 dark:bg-slate-950 flex flex-col items-center py-6 gap-6 z-[1000] shadow-xl">
         <div className="p-3 bg-brand-600 rounded-xl shadow-lg shadow-brand-500/30">
             <span className="text-2xl">🌍</span>
@@ -262,7 +266,6 @@ function App() {
 
       {/* 2. ÁREA PRINCIPAL */}
       <main className="flex-1 relative flex flex-col">
-        {/* Header de Filtros */}
         <Header 
             searchTerm={searchTerm} setSearchTerm={setSearchTerm}
             selectedContinent={selectedContinent} setSelectedContinent={setSelectedContinent}
@@ -270,15 +273,31 @@ function App() {
             filteredCount={filteredEvents.length} continents={continents}
         />
 
-        {/* Barra de Progresso do Robô */}
+        {/* --- MINI PLAYER FLUTUANTE (CANTO INFERIOR DIREITO) --- */}
         {isPopulating && (
-            <div className="bg-blue-600 text-white text-sm font-bold py-2 px-4 text-center shadow-md animate-pulse flex justify-center items-center gap-3 z-50">
-               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-               {populateStatus || "Processando dados..."}
+            <div className="absolute bottom-6 right-6 z-[2000] animate-in slide-in-from-bottom-4 duration-300">
+               <div className="bg-slate-900/95 backdrop-blur-md text-white text-xs py-2 px-3 rounded-lg shadow-2xl border border-slate-700 flex flex-col gap-2 min-w-[300px] max-w-[350px]">
+                  
+                  {/* Topo do Mini-Player */}
+                  <div className="flex items-center justify-between border-b border-slate-700 pb-2">
+                     <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-wider">
+                        <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-400 border-t-transparent"></div>
+                        Extraindo Dados
+                     </div>
+                     <div className="flex gap-1">
+                        <button onClick={() => setShowPopulateModal(true)} title="Maximizar" className="p-1 hover:bg-slate-700 rounded"><Monitor size={14}/></button>
+                        <button onClick={handleStopPopulate} title="Parar" className="p-1 hover:bg-red-900/50 text-red-400 rounded"><Square size={14} fill="currentColor"/></button>
+                     </div>
+                  </div>
+
+                  {/* Última linha do Log */}
+                  <div className="font-mono text-slate-300 truncate">
+                     {populateLogs[populateLogs.length - 1] || "Aguardando resposta..."}
+                  </div>
+               </div>
             </div>
         )}
 
-        {/* Conteúdo Central (Mapa ou Lista) */}
         <div className="flex-1 relative overflow-hidden">
           {viewMode === 'map' ? (
              <MainMap 
@@ -299,7 +318,7 @@ function App() {
         </div>
       </main>
 
-      {/* 3. SIDEBAR DIREITA (FEED CRONOLÓGICO) */}
+      {/* 3. SIDEBAR DIREITA */}
       <aside className="w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-20 shadow-xl">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
            <h2 className="font-bold text-lg">Cronologia</h2>
@@ -307,8 +326,7 @@ function App() {
              <button onClick={() => setShowMenu(!showMenu)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"><Settings size={20}/></button>
              {showMenu && (
                 <div className="absolute right-0 top-10 w-56 bg-white dark:bg-slate-700 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-600 p-2 flex flex-col gap-1 z-50">
-                    <MenuBtn onClick={() => openPopulateConfig('fast')} icon={<Download size={16}/>} label="Modo Turbo" />
-                    <MenuBtn onClick={() => openPopulateConfig('detailed')} icon={<Database size={16}/>} label="Varredura" />
+                    <MenuBtn onClick={() => openPopulateConfig('fast')} icon={<Download size={16}/>} label="Buscar Wikidata" />
                     <div className="h-px bg-slate-100 dark:bg-slate-600 my-1"></div>
                     <MenuBtn onClick={() => fileInputRef.current.click()} icon={<Plus size={16}/>} label="Importar JSON" />
                     <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={() => {}} />
@@ -335,7 +353,7 @@ function App() {
         </div>
       </aside>
 
-      {/* 4. MODAIS E DIÁLOGOS */}
+      {/* 4. MODAIS */}
       <EventModal 
         isOpen={showModal} onClose={() => setShowModal(false)}
         mode={modalMode} eventData={selectedEvent}
@@ -353,8 +371,12 @@ function App() {
       />
       
       <PopulateModal 
-        isOpen={showPopulateModal} onClose={() => setShowPopulateModal(false)} 
+        isOpen={showPopulateModal} 
+        onClose={() => setShowPopulateModal(false)}
         onConfirm={runPopulate} 
+        isLoading={isPopulating} 
+        logs={populateLogs} // <--- Passando o array de logs correto
+        onStop={handleStopPopulate} 
       />
 
       <NotificationModal 

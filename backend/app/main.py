@@ -189,6 +189,12 @@ def create_event(event: EventCreate, db: Session = Depends(database.get_db)):
     db.refresh(db_event)
     return {"status": "created", "name": db_event.name, "id": db_event.id}
 
+@app.post("/populate/stop")
+def stop_populate():
+    """Rota para o botão de cancelar chamar"""
+    populate_final.request_stop()
+    return {"status": "Parada solicitada. O processo encerrará em breve."}
+
 @app.delete("/events/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(database.get_db)):
     e = db.query(models.HistoricalEvent).filter(models.HistoricalEvent.id == event_id).first()
