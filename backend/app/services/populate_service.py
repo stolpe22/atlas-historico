@@ -113,12 +113,7 @@ class PopulateService:
         try:
             self._update_status("📂 Lendo arquivo de dados...")
 
-            # Corrigido: subir 3 níveis (services -> app -> backend) e depois entrar em data
-            # __file__ = backend/app/services/populate_service.py
-            # dirname(__file__) = backend/app/services
-            # dirname(dirname(__file__)) = backend/app
-            # dirname(dirname(dirname(__file__))) = backend
-
+            # ... (código do file_path) ...
             file_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
                 "data",
@@ -128,17 +123,20 @@ class PopulateService:
             with open(file_path, "r", encoding="utf-8") as f:
                 events = json.load(f)
 
-            count = 0
+            count = 0  # <--- VERIFIQUE SE ESTA LINHA EXISTE AQUI
+            
             for evt in events: 
                 if self._should_stop():
                     break
                 
+                # ... (lógica de envio) ...
                 evt.pop('is_manual', None)
                 evt['period'] = calculate_period(int(evt["year_start"]))
                 evt['source'] = "seed"
 
                 requests.post(self.API_URL, json=evt)
-                count += 1
+                
+                count += 1 # O erro acontece aqui se o 'count = 0' lá em cima faltar
 
             self._update_status(f"✅ {count} eventos inseridos!")
 

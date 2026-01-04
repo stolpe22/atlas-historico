@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Calendar } from 'lucide-react';
-import { formatYear } from '../../utils/formatters';
+import { formatYearRange } from '../../utils/formatters';
 
 // ============================================================================
 // VIEW MODE COMPONENT
@@ -17,7 +17,7 @@ const EventViewMode = ({ eventData }) => (
         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0">
           <Calendar size={16} className="text-slate-500 dark:text-slate-400" />
           <span className="font-mono text-lg font-bold text-slate-700 dark:text-slate-200">
-            {formatYear(eventData.year_start || eventData.year)}
+            {formatYearRange(eventData.year_start || eventData.year, eventData.year_end)}
           </span>
         </div>
       </div>

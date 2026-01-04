@@ -1,17 +1,17 @@
 import L from 'leaflet';
-import { formatYear } from './formatters';
+import { formatYearRange } from './formatters';
 
 /**
  * Cria ícone de label para marcador no mapa
  */
-export const createLabelIcon = (name, year) => {
-  const yearDisplay = formatYear(year);
+export const createLabelIcon = (name, yearStart, yearEnd) => {
+  const dateDisplay = formatYearRange(yearStart, yearEnd); // <--- Usa o formatador de intervalo
   
   const html = `
     <div class="flex flex-col items-center transform -translate-y-full cursor-pointer group">
       <div class="flex flex-col items-center shadow-lg transition-transform group-hover:scale-110 duration-200">
-        <span class="bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-t-md w-full text-center tracking-wide border-b border-brand-700">
-          ${yearDisplay}
+        <span class="bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-t-md w-full text-center tracking-wide border-b border-brand-700 whitespace-nowrap">
+          ${dateDisplay} 
         </span>
         <span class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold px-3 py-1.5 rounded-b-md border border-slate-300 dark:border-slate-600 whitespace-nowrap">
           ${name}

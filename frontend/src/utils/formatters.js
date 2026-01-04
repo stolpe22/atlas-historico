@@ -21,6 +21,21 @@ export const formatDate = (dateString) => {
 };
 
 /**
+ * Formata intervalo de anos (ex: "1939 - 1945")
+ */
+export const formatYearRange = (start, end) => {
+  const startStr = formatYear(start);
+  
+  // Se não tem fim, ou se o fim é igual ao início, mostra só o início
+  if (end === undefined || end === null || end === "" || end === start) {
+    return startStr;
+  }
+
+  const endStr = formatYear(end);
+  return `${startStr} - ${endStr}`;
+};
+
+/**
  * Trunca texto com ellipsis
  */
 export const truncateText = (text, maxLength = 100) => {

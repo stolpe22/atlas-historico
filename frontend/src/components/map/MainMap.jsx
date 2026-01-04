@@ -128,7 +128,8 @@ const MainMap = ({
               ]} 
               icon={createLabelIcon(
                 feature.properties.name, 
-                feature.properties.year
+                feature.properties.year,      // Backend manda como 'year'
+                feature.properties.year_end   // Backend agora manda 'year_end'
               )}
               eventHandlers={{
                 click: () => {

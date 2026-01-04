@@ -8,7 +8,7 @@
     "continent": "Ásia",
     "description": "Sumérios desenvolvem a escrita cuneiforme na Mesopotâmia.",
     "content": "O desenvolvimento da escrita cuneiforme pelos sumérios marca a transição da Pré-História para a História Antiga. Inicialmente criada para contabilidade comercial e gestão de excedentes agrícolas, a escrita evoluiu para registrar leis, mitos e a complexidade da vida urbana nas primeiras cidades-estado. Ela permitiu a transmissão de conhecimento entre gerações sem depender apenas da tradição oral.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Unificação do Egito por Narmer",
@@ -19,7 +19,7 @@
     "continent": "África",
     "description": "O primeiro faraó unifica o Alto e Baixo Egito.",
     "content": "A unificação sob o faraó Narmer estabeleceu a base para uma das civilizações mais duradouras da história humana. Este evento permitiu a coordenação de grandes projetos de irrigação no Nilo e a construção de uma identidade cultural e administrativa centralizada que duraria milênios.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Civilização de Caral-Supe",
@@ -30,7 +30,7 @@
     "continent": "América do Sul",
     "description": "A cidade mais antiga das Américas floresce no Peru.",
     "content": "Caral é a cidade mais antiga conhecida nas Américas. Localizada no Vale do Supe, no Peru, a civilização Caral desenvolveu complexas estruturas piramidais e sistemas de irrigação sem o uso de cerâmica ou escrita formal, baseando-se no sistema de quipos para contabilidade.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Construção das Pirâmides",
@@ -41,7 +41,7 @@
     "continent": "África",
     "description": "Construção da Grande Pirâmide de Gizé.",
     "content": "A Grande Pirâmide de Gizé, construída para o faraó Quéops, é a única das Sete Maravilhas do Mundo Antigo que ainda permanece de pé. Sua construção exigiu conhecimentos avançados de matemática, astronomia e engenharia, além de uma força de trabalho massiva. Ela simbolizava o poder absoluto do faraó e sua jornada para a vida após a morte, servindo como uma 'escada' para os céus.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Código de Hamurabi",
@@ -52,7 +52,7 @@
     "continent": "Ásia",
     "description": "Um dos primeiros conjuntos de leis escritas da história.",
     "content": "Gravado em uma estela de diorito negro, o Código de Hamurabi é um dos mais antigos conjuntos de leis preservados. Baseado na Lei de Talião ('olho por olho, dente por dente'), ele estabelecia regras para comércio, propriedade, família e trabalho na Babilônia. Embora as punições variassem de acordo com a classe social, o código representou um avanço fundamental ao tornar a justiça pública e escrita, e não arbitrária.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Guerra de Troia",
@@ -63,7 +63,7 @@
     "continent": "Europa",
     "description": "Conflito épico entre gregos e troianos.",
     "content": "Embora imortalizada pela Ilíada de Homero como um conflito movido por deuses e heróis, evidências arqueológicas indicam que Troia foi de fato um importante centro comercial sitiado por micênicos no final da Idade do Bronze, marcando o colapso de várias civilizações mediterrâneas.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Fundação de Roma",
@@ -74,7 +74,7 @@
     "continent": "Europa",
     "description": "Lenda de Rômulo e Remo.",
     "content": "Segundo a lenda, Roma foi fundada pelos irmãos gêmeos Rômulo e Remo, que foram amamentados por uma loba. Historicamente, a cidade surgiu da união de aldeias latinas e sabinas às margens do rio Tibre. O local era estratégico para o comércio de sal e defesa. Este evento marca o início de uma civilização que evoluiria de uma monarquia para uma república e, finalmente, para um dos maiores impérios da história.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Nascimento de Confúcio",
@@ -85,7 +85,7 @@
     "continent": "Ásia",
     "description": "Filósofo chinês que moldou a cultura oriental.",
     "content": "Confúcio viveu durante um período de caos político na China e propôs um sistema ético e social baseado na moralidade pessoal, na retidão das relações sociais, na justiça e na sinceridade. Seus ensinamentos, compilados nos 'Analectos', tornaram-se a base do sistema educacional e burocrático chinês por milênios, enfatizando a importância da família e do respeito à hierarquia para a harmonia social.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Democracia Ateniense",
@@ -96,7 +96,7 @@
     "continent": "Europa",
     "description": "Clístenes institui reformas democráticas em Atenas.",
     "content": "Após a tirania, Clístenes introduziu reformas que deram origem à democracia (governo do povo). Ele reorganizou a população de Atenas em tribos baseadas na geografia, não na linhagem, quebrando o poder da aristocracia. Instituiu a Eclésia (assembleia) onde os cidadãos homens podiam votar diretamente nas leis. Embora excludente (mulheres e escravos não votavam), foi o berço da participação política ocidental.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Alexandre, o Grande",
@@ -107,7 +107,7 @@
     "continent": "Europa",
     "description": "Início da campanha persa e expansão do império macedônico.",
     "content": "Alexandre III da Macedônia iniciou uma das campanhas militares mais impressionantes da história, conquistando desde a Grécia até a Índia sem nunca perder uma batalha. Sua maior contribuição não foi apenas militar, mas cultural: a disseminação do Helenismo. Suas conquistas fundiram a cultura grega com as tradições persas, egípcias e indianas, criando um legado cosmopolita que perdurou por séculos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Muralha da China",
@@ -118,7 +118,7 @@
     "continent": "Ásia",
     "description": "Unificação da China e conexão das muralhas por Qin Shi Huang.",
     "content": "O imperador Qin Shi Huang, após unificar a China, ordenou a conexão de várias muralhas preexistentes para proteger o império recém-formado contra as invasões das tribos nômades do norte (como os Xiongnu). A obra monumental custou a vida de milhares de trabalhadores. Além da defesa, a muralha servia como símbolo da centralização do poder e controle das rotas comerciais, como a Rota da Seda.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Civilização de Nazca",
@@ -129,7 +129,7 @@
     "continent": "América do Sul",
     "description": "Criação dos geoglifos de Nazca no Peru.",
     "content": "A cultura Nazca é famosa por seus enormes geoglifos desenhados no solo do deserto peruano. Esses desenhos, que variam de formas geométricas a animais complexos, só podem ser plenamente vistos do céu e permanecem um mistério arqueológico, embora teorias sugiram funções astronômicas ou rituais ligados à água.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Assassinato de Júlio César",
@@ -140,7 +140,7 @@
     "continent": "Europa",
     "description": "Fim da República Romana nos Idos de Março.",
     "content": "Nos Idos de Março, Júlio César, que havia se declarado ditador perpétuo, foi assassinado por um grupo de senadores, incluindo seu protegido Brutus, que temiam o fim da República. Ironicamente, o assassinato não salvou a República, mas mergulhou Roma em uma guerra civil que resultou na ascensão de Otaviano (Augusto) e na instauração definitiva do Império Romano.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Nascimento de Jesus",
@@ -151,7 +151,7 @@
     "continent": "Ásia",
     "description": "Marco inicial do calendário cristão (data aproximada).",
     "content": "O nascimento de Jesus de Nazaré na província romana da Judeia é o ponto central do calendário ocidental e o evento fundador do Cristianismo. Seus ensinamentos sobre amor, perdão e o Reino de Deus desafiaram as autoridades religiosas e romanas da época. O movimento iniciado por seus seguidores transformaria radicalmente a ética, a cultura e a política do mundo ocidental nos séculos seguintes.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Erupção do Vesúvio",
@@ -162,7 +162,7 @@
     "continent": "Europa",
     "description": "Destruição de Pompeia e Herculano.",
     "content": "A catastrófica erupção do Monte Vesúvio soterrou as cidades romanas de Pompeia e Herculano sob uma espessa camada de cinzas e material piroclástico. O evento preservou de forma quase perfeita a vida cotidiana do século I d.C., fornecendo aos arqueólogos uma visão incomparável da arquitetura, arte e costumes romanos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Apogeu dos Maias",
@@ -173,7 +173,7 @@
     "continent": "América do Norte",
     "description": "Período Clássico da civilização maia.",
     "content": "Durante o Período Clássico, os Maias construíram cidades-estado monumentais como Tikal e Palenque. Eles desenvolveram o sistema de escrita mais avançado das Américas pré-colombianas, além de conhecimentos matemáticos sofisticados, incluindo o uso do zero, e um sistema de calendário astronômico extremamente preciso.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Queda de Roma",
@@ -184,7 +184,7 @@
     "continent": "Europa",
     "description": "Fim do Império Romano do Ocidente e início da Idade Média.",
     "content": "A deposição do imperador Rômulo Augusto pelo líder germânico Odoacro simboliza o colapso final do Império Romano do Ocidente. Esse evento foi causado por uma combinação de crises econômicas, corrupção política e pressão das migrações bárbaras. A queda de Roma fragmentou a unidade política da Europa, dando início ao feudalismo e marcando o começo da Idade Média.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Hégira de Maomé",
@@ -195,7 +195,7 @@
     "continent": "Ásia",
     "description": "Fuga de Maomé para Medina, início do calendário islâmico.",
     "content": "A Hégira marca a migração do profeta Maomé e seus seguidores de Meca para Yathrib (atual Medina) para escapar da perseguição religiosa. Este evento é tão crucial que marca o ano 1 do calendário islâmico. Em Medina, Maomé estabeleceu a primeira comunidade muçulmana (Umma), unindo tribos árabes sob uma nova fé monoteísta e estabelecendo as bases para a rápida expansão do Islã.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Coroação de Carlos Magno",
@@ -206,7 +206,7 @@
     "continent": "Europa",
     "description": "Restaurou o Império no Ocidente.",
     "content": "No dia de Natal do ano 800, o Papa Leão III coroou Carlos Magno como Imperador dos Romanos. Isso simbolizou a tentativa de reviver a grandeza do Império Romano no Ocidente e solidificou a aliança entre a Igreja e o poder secular. O reinado de Carlos Magno promoveu o 'Renascimento Carolíngio', um período de florescimento cultural, educacional e administrativo na Europa medieval.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Povoamento da Nova Zelândia (Maori)",
@@ -217,7 +217,7 @@
     "continent": "Oceania",
     "description": "Navegadores polinésios chegam à Nova Zelândia.",
     "content": "Viajando em grandes canoas de casco duplo, navegadores polinésios da região da Polinésia Oriental (Hawaiki) chegaram a Aotearoa (Nova Zelândia). Eles desenvolveram a cultura Maori única, baseada em forte organização tribal, tradições guerreiras, artes de escultura e tatuagem (Moko) e uma conexão profunda com a terra.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Cisma do Oriente",
@@ -228,7 +228,7 @@
     "continent": "Europa",
     "description": "Separação entre a Igreja Católica e Ortodoxa.",
     "content": "O Grande Cisma foi a ruptura definitiva entre a Igreja Católica Romana (Ocidente) e a Igreja Ortodoxa (Oriente). As tensões acumuladas por séculos sobre a autoridade papal, a cláusula Filioque e diferenças litúrgicas culminaram na excomunhão mútua entre o Papa e o Patriarca de Constantinopla. Essa divisão moldou profundamente a geopolítica e a cultura da Europa e do Oriente Médio.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Primeira Cruzada",
@@ -239,7 +239,7 @@
     "continent": "Ásia",
     "description": "Expedição militar cristã para recuperar a Terra Santa.",
     "content": "Convocada pelo Papa Urbano II no Concílio de Clermont, a Primeira Cruzada foi uma resposta ao avanço turco seljúcida e um apelo para retomar Jerusalém. Foi a única cruzada militarmente bem-sucedida em seu objetivo principal, resultando na captura de Jerusalém em 1099. O evento reabriu rotas comerciais no Mediterrâneo, mas também deixou um legado duradouro de conflito religioso.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Gengis Khan Unifica Mongóis",
@@ -250,7 +250,7 @@
     "continent": "Ásia",
     "description": "Início do Império Mongol, o maior império contíguo da história.",
     "content": "Temujin unificou as tribos nômades das estepes e recebeu o título de Gengis Khan (Governante Universal). Através de uma cavalaria inigualável, táticas de terror psicológico e meritocracia militar, ele iniciou a expansão que criaria o maior império em terras contínuas da história. Paradoxalmente, a 'Pax Mongolica' permitiu um florescimento do comércio na Rota da Seda e trocas culturais entre Oriente e Ocidente.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Magna Carta",
@@ -261,7 +261,7 @@
     "continent": "Europa",
     "description": "Rei João da Inglaterra limita seus próprios poderes.",
     "content": "Pressionado por barões rebeldes, o Rei João Sem Terra assinou a Magna Carta em Runnymede. O documento estabelecia que o rei não estava acima da lei, protegia os direitos dos nobres contra prisões ilegais e limitava a tributação feudal. Embora inicialmente ignorada, tornou-se a pedra fundamental do direito constitucional moderno e das liberdades civis no mundo anglófono.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Peste Negra",
@@ -272,7 +272,7 @@
     "continent": "Europa",
     "description": "Chegada da praga à Europa via Sicília.",
     "content": "A Peste Negra, trazida por navios genoveses vindos da Crimeia, foi a pandemia mais devastadora da história humana. Estima-se que tenha matado entre 30% a 60% da população europeia. O despovoamento massivo causou escassez de mão de obra, o que enfraqueceu o sistema feudal, aumentou os salários dos camponeses e abalou a confiança inquestionável na Igreja, preparando o terreno para o Renascimento.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Queda de Constantinopla",
@@ -283,7 +283,7 @@
     "continent": "Europa",
     "description": "Invasão otomana, fim da Idade Média.",
     "content": "A conquista de Constantinopla pelo sultão otomano Mehmed II, utilizando canhões gigantes para derrubar as muralhas teodosianas, marcou o fim do Império Bizantino (o último vestígio de Roma). A queda fechou a rota comercial terrestre para a Ásia, forçando os europeus a buscarem rotas marítimas (iniciando as Grandes Navegações) e provocou a fuga de intelectuais gregos para a Itália, impulsionando o Renascimento.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Invenção da Prensa de Tipos Móveis",
@@ -294,7 +294,7 @@
     "continent": "Europa",
     "description": "Johannes Gutenberg revoluciona a impressão.",
     "content": "A invenção de Gutenberg permitiu a produção em massa de livros, tornando a informação acessível a um público muito maior. A Bíblia de Gutenberg foi o primeiro grande livro impresso. Este avanço tecnológico foi o motor fundamental para o Renascimento, a Reforma Protestante e a Revolução Científica.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Descobrimento da América",
@@ -305,7 +305,7 @@
     "continent": "América do Norte",
     "description": "Cristóvão Colombo chega às Bahamas.",
     "content": "A chegada de Cristóvão Colombo às ilhas do Caribe, buscando uma rota oeste para as Índias, iniciou o contato permanente entre o Velho e o Novo Mundo. Esse evento desencadeou o Intercâmbio Colombiano (troca massiva de plantas, animais, doenças e culturas) e marcou o início da colonização europeia nas Américas, alterando drasticamente a história global e dizimando populações indígenas.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Tratado de Tordesilhas",
@@ -316,7 +316,7 @@
     "continent": "Europa",
     "description": "Divisão do mundo entre Portugal e Espanha.",
     "content": "Assinado na vila espanhola de Tordesilhas, este tratado dividiu as terras 'descobertas e por descobrir' fora da Europa entre Portugal e Espanha, ao longo de um meridiano a 370 léguas de Cabo Verde. O acordo garantiu a Portugal o direito sobre o que viria a ser o Brasil, antes mesmo da chegada oficial de Cabral, e definiu a geopolítica colonial por séculos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Chegada ao Brasil",
@@ -327,7 +327,7 @@
     "continent": "América do Sul",
     "description": "Pedro Álvares Cabral chega a Porto Seguro.",
     "content": "A expedição de Pedro Álvares Cabral, destinada às Índias, desviou a rota e aportou no litoral sul da Bahia. Inicialmente chamada de Ilha de Vera Cruz, a terra foi reivindicada para a coroa portuguesa. O contato inicial com os indígenas foi pacífico, marcado pela troca de presentes e a celebração da primeira missa, dando início à exploração do Pau-Brasil e à formação territorial do Brasil.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Apogeu do Império Inca em Machu Picchu",
@@ -338,7 +338,7 @@
     "continent": "América do Sul",
     "description": "Construção da cidadela de Machu Picchu.",
     "content": "Machu Picchu foi construída no auge do Império Inca, sob as ordens do imperador Pachacuti. Localizada no topo de uma montanha, a cidade é um triunfo da engenharia inca, com terraços agrícolas, templos astronômicos e sistemas de canais de água. Ela servia como refúgio real e centro religioso, permanecendo oculta dos colonizadores espanhóis por séculos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Teses de Lutero",
@@ -349,7 +349,7 @@
     "continent": "Europa",
     "description": "Início da Reforma Protestante na Alemanha.",
     "content": "O monge Martinho Lutero afixou suas 95 Teses na porta da igreja de Wittenberg, criticando a venda de indulgências e a corrupção da Igreja Católica. Apoiado pela invenção da imprensa, suas ideias se espalharam rapidamente, quebrando a unidade religiosa da Europa. A Reforma Protestante não apenas criou novas denominações cristãs, mas também fortaleceu o nacionalismo e a alfabetização.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Queda de Tenochtitlan",
@@ -360,7 +360,7 @@
     "continent": "América do Norte",
     "description": "Cortés derrota o Império Asteca.",
     "content": "Após um cerco brutal de meses, o conquistador espanhol Hernán Cortés, aliado a povos indígenas inimigos dos astecas (como os Tlaxcaltecas), capturou a capital asteca Tenochtitlan. A vitória foi facilitada pela varíola, que dizimou a população local. A queda do Império Asteca marcou o estabelecimento do domínio espanhol no México e o fim de uma das maiores civilizações mesoamericanas.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Queda dos Incas",
@@ -371,7 +371,7 @@
     "continent": "América do Sul",
     "description": "Pizarro captura Cusco.",
     "content": "Francisco Pizarro, aproveitando-se de uma guerra civil inca e de uma epidemia de varíola, capturou o imperador Atahualpa em Cajamarca. Mesmo após o pagamento de um resgate fabuloso em ouro e prata, Atahualpa foi executado. A tomada de Cusco consolidou o poder espanhol nos Andes, destruindo a estrutura política do Império Inca e impondo o sistema colonial.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Fundação de São Paulo",
@@ -382,7 +382,7 @@
     "continent": "América do Sul",
     "description": "Jesuítas fundam o colégio no planalto de Piratininga.",
     "content": "Os padres jesuítas Manuel da Nóbrega e José de Anchieta fundaram um colégio no planalto de Piratininga para catequizar os indígenas. A localização estratégica, entre rios e protegida pela Serra do Mar, permitiu que o povoado se tornasse um ponto de partida para as Bandeiras, expedições que desbravaram o interior do Brasil em busca de ouro e escravos, expandindo as fronteiras da colônia.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Estabelecimento do Xogunato Tokugawa",
@@ -393,7 +393,7 @@
     "continent": "Ásia",
     "description": "Início do período Edo no Japão.",
     "content": "Após a Batalha de Sekigahara, Tokugawa Ieyasu estabeleceu um governo militar centralizado no Japão. Este período foi marcado por estabilidade política, crescimento econômico e uma política de isolamento nacional (Sakoku), onde o contato com o exterior era extremamente limitado. Foi a era de ouro dos Samurais e do desenvolvimento das artes tradicionais japonesas.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Industrial",
@@ -404,7 +404,7 @@
     "continent": "Europa",
     "description": "Início da mecanização em Manchester.",
     "content": "Iniciada na Inglaterra, a Revolução Industrial transformou a manufatura artesanal em produção mecanizada fabril. A invenção da máquina a vapor e o uso do carvão permitiram a produção em massa, especialmente de têxteis. Esse processo causou uma urbanização explosiva, o surgimento do proletariado e da burguesia industrial, e alterou irreversivelmente a economia e o meio ambiente global.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Independência dos EUA",
@@ -415,7 +415,7 @@
     "continent": "América do Norte",
     "description": "Declaração assinada na Filadélfia.",
     "content": "As Treze Colônias declararam sua independência da Grã-Bretanha, inspiradas pelos ideais iluministas de liberdade e autogoverno. Redigida principalmente por Thomas Jefferson, a Declaração de Independência afirmou que 'todos os homens são criados iguais'. A vitória na guerra subsequente criou a primeira república democrática moderna, influenciando movimentos revolucionários em todo o mundo, incluindo no Brasil.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Francesa",
@@ -426,7 +426,7 @@
     "continent": "Europa",
     "description": "Queda da Bastilha e fim do absolutismo.",
     "content": "A Queda da Bastilha simbolizou o início da Revolução Francesa, um movimento que derrubou a monarquia absolutista e os privilégios feudais sob o lema 'Liberdade, Igualdade, Fraternidade'. A Declaração dos Direitos do Homem e do Cidadão estabeleceu a base para a cidadania moderna. O período de instabilidade culminou na ascensão de Napoleão Bonaparte e na disseminação dos ideais liberais pela Europa.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Vinda da Família Real",
@@ -437,7 +437,7 @@
     "continent": "América do Sul",
     "description": "Corte portuguesa chega ao Rio de Janeiro fugindo de Napoleão.",
     "content": "Fugindo das tropas de Napoleão, D. João VI transferiu toda a corte portuguesa para o Rio de Janeiro, um evento inédito na história colonial. Isso resultou na Abertura dos Portos às Nações Amigas, o fim do monopólio colonial e a criação de instituições como o Banco do Brasil e a Biblioteca Nacional. O Brasil deixou de ser colônia na prática, tornando-se sede do império português.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Batalha de Waterloo",
@@ -448,7 +448,7 @@
     "continent": "Europa",
     "description": "Derrota final de Napoleão Bonaparte.",
     "content": "Waterloo marcou a derrota definitiva de Napoleão Bonaparte frente a uma coalizão liderada pelo Duque de Wellington e pelo prussiano Blücher. O fim das Guerras Napoleônicas permitiu que o Congresso de Viena redesenhasse o mapa da Europa, restaurando monarquias e estabelecendo um equilíbrio de poder que evitaria grandes conflitos generalizados no continente por quase um século.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Independência do Brasil",
@@ -459,7 +459,7 @@
     "continent": "América do Sul",
     "description": "D. Pedro I proclama a independência às margens do Ipiranga.",
     "content": "Diferente dos vizinhos espanhóis, a independência do Brasil foi conduzida pelo próprio herdeiro do trono português, D. Pedro I. O Grito do Ipiranga rompeu os laços políticos com Portugal, mas manteve a monarquia e a escravidão, garantindo a unidade territorial do país. O Brasil tornou-se um Império cercado de repúblicas na América do Sul.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Guerra do Ópio",
@@ -470,7 +470,7 @@
     "continent": "Ásia",
     "description": "Conflito entre China e Reino Unido.",
     "content": "O Reino Unido, para equilibrar sua balança comercial, forçou a entrada ilegal de ópio na China. A tentativa chinesa de proibir a droga levou à guerra. A derrota chinesa resultou no Tratado de Nanquim, o primeiro dos 'Tratados Desiguais', que cedeu Hong Kong aos britânicos e abriu os portos chineses ao comércio ocidental, iniciando o chamado 'Século de Humilhação' da China.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Guerra Civil Americana",
@@ -481,7 +481,7 @@
     "continent": "América do Norte",
     "description": "Conflito entre Norte e Sul sobre escravidão e união.",
     "content": "A Guerra de Secessão foi o conflito mais sangrento da história dos EUA, opondo o Norte industrial (União) ao Sul agrário (Confederados), que desejava manter a escravidão. A vitória da União sob Abraham Lincoln preservou o país e resultou na 13ª Emenda, que aboliu a escravidão. A guerra definiu a nação americana moderna e acelerou sua industrialização.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Guerra do Paraguai",
@@ -492,7 +492,7 @@
     "continent": "América do Sul",
     "description": "Maior conflito armado da América do Sul.",
     "content": "A Tríplice Aliança (Brasil, Argentina e Uruguai) uniu-se contra o Paraguai de Solano López. O conflito devastou a população masculina paraguaia e destruiu sua economia. Para o Brasil, a guerra consolidou o Exército como força política (levando à Proclamação da República) e aumentou a dívida externa, mas garantiu a livre navegação na Bacia do Prata.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Restauração Meiji",
@@ -503,7 +503,7 @@
     "continent": "Ásia",
     "description": "Fim do Xogunato e modernização do Japão.",
     "content": "A Restauração Meiji encerrou o feudalismo dos samurais e o isolamento do Japão, restaurando o poder imperial. O país iniciou uma modernização acelerada, adotando tecnologia, indústria e táticas militares ocidentais. Em poucas décadas, o Japão transformou-se de uma sociedade agrária feudal em uma potência industrial e militar global, capaz de desafiar as potências ocidentais.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Conferência de Berlim",
@@ -514,7 +514,7 @@
     "continent": "Europa",
     "description": "Partilha da África pelas potências europeias.",
     "content": "Organizada por Otto von Bismarck, a conferência regulamentou a colonização e o comércio europeu na África, formalizando a 'Partilha da África'. As potências desenharam fronteiras arbitrárias que ignoravam divisões étnicas e culturais locais, focando apenas na extração de recursos. Esse evento institucionalizou o neocolonialismo e deixou sementes de conflitos que perduram no continente africano até hoje.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Lei Áurea",
@@ -525,7 +525,7 @@
     "continent": "América do Sul",
     "description": "Abolição da escravidão no Brasil.",
     "content": "Assinada pela Princesa Isabel, a Lei Áurea aboliu a escravidão no Brasil, o último país das Américas a fazê-lo. Embora tenha libertado cerca de 700 mil pessoas, a lei não previu medidas de integração social ou econômica para os ex-escravizados, perpetuando desigualdades. A abolição também retirou o apoio dos grandes fazendeiros à monarquia, precipitando a queda do Império no ano seguinte.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Proclamação da República",
@@ -536,7 +536,7 @@
     "continent": "América do Sul",
     "description": "Marechal Deodoro encerra o império no Brasil.",
     "content": "Um golpe militar liderado pelo Marechal Deodoro da Fonseca depôs o Imperador D. Pedro II e instaurou a República Federativa. O movimento foi motivado pelo descontentamento dos militares, da Igreja e dos fazendeiros escravocratas. A mudança de regime ocorreu sem participação popular direta (o povo assistiu 'bestializado', segundo Aristides Lobo), marcando o início da influência militar na política brasileira.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Primeiro Voo do 14-Bis",
@@ -547,7 +547,7 @@
     "continent": "Europa",
     "description": "Santos Dumont voa em Paris.",
     "content": "Alberto Santos Dumont realizou em Paris o primeiro voo homologado de um aparelho mais pesado que o ar, o 14-Bis, sem auxílio de catapultas (diferente dos irmãos Wright). O voo de 60 metros no Campo de Bagatelle provou a viabilidade da aviação autopropulsada. Dumont, um pacifista, veria com tristeza sua invenção ser usada como arma de guerra anos depois.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Primeira Guerra Mundial",
@@ -558,7 +558,7 @@
     "continent": "Europa",
     "description": "Assassinato de Francisco Ferdinando em Sarajevo.",
     "content": "O assassinato do arquiduque austríaco em Sarajevo acionou um complexo sistema de alianças que mergulhou o mundo na 'Grande Guerra'. Caracterizada pela guerra de trincheiras e pelo uso de novas tecnologias mortíferas (metralhadoras, gás mostarda, tanques), o conflito derrubou quatro impérios (Alemão, Austro-Húngaro, Otomano e Russo) e redesenhou o mapa global.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Russa",
@@ -569,7 +569,7 @@
     "continent": "Europa",
     "description": "Bolcheviques tomam o poder.",
     "content": "Liderados por Lenin, os Bolcheviques derrubaram o governo provisório e instauraram o primeiro estado socialista do mundo. A revolução retirou a Rússia da Primeira Guerra Mundial e levou a uma guerra civil sangrenta. A criação da União Soviética transformou a geopolítica do século XX, estabelecendo o comunismo como uma força global alternativa ao capitalismo.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Semana de Arte Moderna",
@@ -580,7 +580,7 @@
     "continent": "América do Sul",
     "description": "Marco do modernismo brasileiro em São Paulo.",
     "content": "Realizada no Theatro Municipal de São Paulo, a Semana de 22 rompeu com o academicismo e propôs uma arte genuinamente brasileira, livre de moldes europeus. Artistas como Tarsila do Amaral, Oswald de Andrade e Villa-Lobos introduziram o concept de 'antropofagia' cultural: devorar a cultura estrangeira e reinvenção-la com identidade nacional.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Quebra da Bolsa de NY",
@@ -591,7 +591,7 @@
     "continent": "América do Norte",
     "description": "Início da Grande Depressão.",
     "content": "O colapso de Wall Street em 1929 encerrou os 'Loucos Anos 20' e desencadeou a Grande Depressão mundial. O desemprego em massa e a falência econômica nos EUA afetaram o mundo todo (no Brasil, derrubou o preço do café). A crise fortaleceu ideologias extremistas na Europa e levou ao 'New Deal' nos EUA, que introduziu a intervenção estatal na economia.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Segunda Guerra Mundial",
@@ -602,7 +602,7 @@
     "continent": "Europa",
     "description": "Invasão da Polônia pela Alemanha.",
     "content": "A invasão da Polônia por Hitler marcou o início do maior conflito da história humana. A guerra opôs os Aliados contra o Eixo e foi marcada pelo Holocausto, bombardeios aéreos massivos e batalhas globais. O conflito terminou com a derrota total do fascismo, a ascensão dos EUA e da URSS como superpotências e a fundação da ONU para evitar novas guerras mundiais.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Pearl Harbor",
@@ -613,7 +613,7 @@
     "continent": "América do Norte",
     "description": "EUA entram na guerra após ataque japonês.",
     "content": "O ataque surpresa japonês à base naval americana no Havaí forçou a entrada dos Estados Unidos na Segunda Guerra Mundial. O evento transformou o conflito em uma guerra verdadeiramente global, unindo os teatros de operação da Europa e do Pacífico. A mobilização industrial americana subsequente foi decisiva para a vitória dos Aliados.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Dia D",
@@ -624,7 +624,7 @@
     "continent": "Europa",
     "description": "Aliados desembarcam na Normandia.",
     "content": "A Operação Overlord foi a maior invasão anfíbia da história. Tropas americanas, britânicas e canadenses desembarcaram nas praias da França ocupada, abrindo uma frente ocidental contra a Alemanha nazista. O sucesso do Dia D marcou o começo do fim para o Terceiro Reich na Europa e a libertação da França.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Bomba Atômica",
@@ -635,7 +635,7 @@
     "continent": "Ásia",
     "description": "Bombardeio de Hiroshima e Nagasaki.",
     "content": "Os EUA lançaram as primeiras e únicas bombas nucleares usadas em guerra sobre as cidades japonesas de Hiroshima e Nagasaki. A devastação sem precedentes forçou a rendição do Japão, encerrando a Segunda Guerra Mundial. O evento iniciou a Era Atômica e a Guerra Fria, com o mundo vivendo sob o temor da destruição mútua assegurada.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Criação da ONU",
@@ -646,7 +646,7 @@
     "continent": "América do Norte",
     "description": "Fundada em São Francisco para promover a paz.",
     "content": "Após as falhas da Liga das Nações e a devastação da Segunda Guerra, 50 países fundaram a Organização das Nações Unidas. Seu objetivo era promover a paz, a cooperação internacional e os direitos humanos. Embora limitada pelo poder de veto das grandes potências no Conselho de Segurança, a ONU tornou-se o principal fórum para a diplomacia global e ajuda humanitária.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Independência da Índia",
@@ -657,7 +657,7 @@
     "continent": "Ásia",
     "description": "Fim do domínio britânico liderado por Gandhi.",
     "content": "Sob a liderança de Mahatma Gandhi e sua filosofia de resistência não-violenta (Satyagraha), a Índia conquistou sua independência do Império Britânico. No entanto, a independência veio acompanhada da Partição, que dividiu o subcontinente em Índia (hindu) e Paquistão (muçulmano), gerando migrações em massa, violência sectária e conflitos que persistem até hoje.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Criação de Israel",
@@ -668,7 +668,7 @@
     "continent": "Ásia",
     "description": "Fundação do Estado de Israel.",
     "content": "Após o Holocausto e o fim do mandato britânico na Palestina, David Ben-Gurion proclamou o Estado de Israel. O evento realizou o sonho do movimento sionista de um lar nacional judeu, mas desencadeou imediatamente a primeira guerra árabe-israelense e o deslocamento de palestinos (Nakba), iniciando um dos conflitos geopolíticos mais complexos e duradouros do mundo moderno.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Chinesa",
@@ -679,7 +679,7 @@
     "continent": "Ásia",
     "description": "Mao Tsé-Tung proclama a República Popular da China.",
     "content": "Após uma longa guerra civil, os comunistas liderados por Mao Tsé-Tung derrotaram os nacionalistas (que fugiram para Taiwan) e fundaram a República Popular da China. O evento alterou o equilíbrio da Guerra Fria na Ásia e iniciou um período de transformações radicais na sociedade chinesa, desde a coletivização agrária até a ascensão da China como potência global.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Guerra da Coreia",
@@ -690,7 +690,7 @@
     "continent": "Ásia",
     "description": "Conflito divide a península em Norte e Sul.",
     "content": "A invasão da Coreia do Sul pelo Norte comunista foi o primeiro conflito armado da Guerra Fria. Envolveu intervenção direta dos EUA (via ONU) e da China. A guerra terminou em um armistício, não em paz, solidificando a divisão da península no Paralelo 38. O Norte isolou-se sob uma dinastia ditatorial, enquanto o Sul tornou-se uma democracia capitalista próspera.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Suicídio de Getúlio Vargas",
@@ -701,7 +701,7 @@
     "continent": "América do Sul",
     "description": "Presidente brasileiro tira a própria vida no Rio.",
     "content": "Pressionado por uma crise política e militar, Getúlio Vargas cometeu suicídio no Palácio do Catete, deixando uma carta-testamento onde afirmou 'sair da vida para entrar na história'. O ato comoveu a população e adiou um golpe militar iminente por dez anos, garantindo a continuidade do regime democrático e o legado do trabalhismo no Brasil.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Cubana",
@@ -712,7 +712,7 @@
     "continent": "América do Norte",
     "description": "Fidel Castro toma o poder.",
     "content": "Fidel Castro e Che Guevara lideraram uma guerrilha que derrubou o ditador Fulgencio Batista. Inicialmente nacionalista, a revolução alinhou-se à União Soviética, estabelecendo o primeiro estado socialista no hemisfério ocidental. Isso trouxe a Guerra Fria para a porta dos EUA, resultando no embargo econômico e na Crise dos Mísseis.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Construção de Brasília",
@@ -723,7 +723,7 @@
     "continent": "América do Sul",
     "description": "Juscelino Kubitschek inaugura a nova capital.",
     "content": "Sob o lema '50 anos em 5', JK construiu uma nova capital no centro do país em tempo recorde. Projetada por Oscar Niemeyer e Lúcio Costa, Brasília é um ícone da arquitetura modernista. A mudança visava integrar o interior do Brasil e afastar o centro de poder das pressões populares do Rio de Janeiro, simbolizando uma era de otimismo e desenvolvimento.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Muro de Berlim",
@@ -734,7 +734,7 @@
     "continent": "Europa",
     "description": "Divisão física entre Alemanha Oriental e Ocidental.",
     "content": "Para impedir a fuga de cidadãos para o lado capitalista, a Alemanha Oriental construiu o Muro de Berlim. Ele se tornou o símbolo físico mais potente da Cortina de Ferro e da divisão do mundo entre capitalismo e comunismo. Famílias foram separadas e centenas morreram tentando cruzá-lo, até sua dramática queda em 1989.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Crise dos Mísseis",
@@ -745,7 +745,7 @@
     "continent": "América do Norte",
     "description": "Tensão nuclear máxima entre EUA e URSS em Cuba.",
     "content": "A descoberta de mísseis nucleares soviéticos em Cuba levou o mundo à beira de uma guerra nuclear. Durante 13 dias tensos, Kennedy e Khrushchev negociaram enquanto impunham um bloqueio naval. A crise foi resolvida com a retirada dos mísseis de Cuba (e secretamente dos EUA na Turquia) e levou à criação do 'telefone vermelho' para comunicação direta entre as superpotências.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Golpe Militar no Brasil",
@@ -756,7 +756,7 @@
     "continent": "América do Sul",
     "description": "Início de 21 anos de ditadura militar.",
     "content": "Apoiados pelos EUA e setores conservadores da sociedade, militares depuseram o presidente João Goulart sob pretexto de combater o comunismo. O regime, que deveria ser provisório, durou 21 anos, marcados por censura, tortura, exílio de opositores (especialmente após o AI-5 em 1968) e um 'milagre econômico' que aumentou a desigualdade social.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Homem na Lua",
@@ -767,7 +767,7 @@
     "continent": "América do Norte",
     "description": "Apollo 11 é lançada do Cabo Canaveral.",
     "content": "A missão Apollo 11 cumpriu a promessa de Kennedy de levar o homem à Lua. Neil Armstrong e Buzz Aldrin caminharam na superfície lunar, um feito tecnológico extraordinário que marcou a vitória dos EUA na Corrida Espacial contra a URSS. O evento foi assistido por milhões na TV, simbolizando o potencial ilimitado da exploração humana.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Fim da Guerra do Vietnã",
@@ -778,7 +778,7 @@
     "continent": "Ásia",
     "description": "Queda de Saigon e reunificação do Vietnã.",
     "content": "A captura de Saigon pelas forças comunistas do Norte marcou a derrota dos EUA e a reunificação do Vietnã sob um governo socialista. Foi a primeira grande derrota militar americana, influenciada fortemente pela cobertura da mídia e protestos pacifistas em casa. O conflito deixou cicatrizes profundas na sociedade americana e devastou a população vietnamita.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Revolução Iraniana",
@@ -789,7 +789,7 @@
     "continent": "Ásia",
     "description": "Fim da monarquia e início da República Islâmica.",
     "content": "Uma revolução popular derrubou o Xá Reza Pahlavi, aliado do Ocidente, e levou ao poder o Aiatolá Khomeini. O Irã tornou-se uma República Islâmica teocrática, alterando radicalmente o equilíbrio no Oriente Médio. O evento introduziu o islamismo político como uma força global importante e iniciou décadas de hostilidade entre o Irã e os Estados Unidos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Diretas Já",
@@ -800,7 +800,7 @@
     "continent": "América do Sul",
     "description": "Movimento popular pelo voto direto no Brasil.",
     "content": "O maior movimento popular da história do Brasil exigiu o retorno das eleições diretas para presidente após 20 anos de ditadura. Embora a Emenda Dante de Oliveira tenha sido derrotada no Congresso, a mobilização social foi decisiva para o fim do regime militar e a eleição indireta de Tancredo Neves, pavimentando o caminho para a redemocratização e a Constituição de 1988.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Acidente de Chernobyl",
@@ -811,7 +811,7 @@
     "continent": "Europa",
     "description": "Maior desastre nuclear da história.",
     "content": "A explosão do reator 4 da usina de Chernobyl, na Ucrânia soviética, liberou uma nuvem radioativa sobre a Europa. O desastre expôs as falhas tecnológicas e a cultura de segredo da URSS. O custo humano e econômico da limpeza, aliado à necessidade de transparência (Glasnost), acelerou o colapso da União Soviética e mudou a percepção global sobre a energia nuclear.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Queda do Muro de Berlim",
@@ -822,7 +822,7 @@
     "continent": "Europa",
     "description": "Símbolo do fim da Guerra Fria.",
     "content": "Após protestos em massa e uma confusão burocrática, as fronteiras da Alemanha Oriental foram abertas. Multidões eufóricas derrubaram o Muro de Berlim, o símbolo máximo da divisão da Guerra Fria. O evento precipitou a reunificação da Alemanha e o colapso dos regimes comunistas no Leste Europeu, marcando o 'fim da história' para o bloco soviético.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Fim da União Soviética",
@@ -833,7 +833,7 @@
     "continent": "Europa",
     "description": "Dissolução da URSS.",
     "content": "No dia de Natal de 1991, a bandeira soviética foi baixada do Kremlin pela última vez. A dissolução da URSS em 15 repúblicas independentes encerrou a Guerra Fria e a bipolaridade mundial. O evento foi precipitado por crises econômicas, nacionalismos internos e pelas reformas de Gorbachev, inaugurando uma era de hegemonia americana e a transição difícil para o capitalismo na Rússia.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Fim do Apartheid",
@@ -844,7 +844,7 @@
     "continent": "África",
     "description": "Nelson Mandela eleito presidente da África do Sul.",
     "content": "Após décadas de segregação racial institucionalizada e resistência interna e internacional, o regime do Apartheid foi desmantelado. Nelson Mandela, após 27 anos preso, foi eleito o primeiro presidente negro da África do Sul em eleições multirraciais. Seu governo focou na reconciliação nacional, evitando uma guerra civil e tornando-se um ícone global de direitos humanos.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Plano Real",
@@ -855,7 +855,7 @@
     "continent": "América do Sul",
     "description": "Estabilização econômica do Brasil.",
     "content": "Após décadas de hiperinflação que corroía o poder de compra dos brasileiros, o Plano Real, liderado por Fernando Henrique Cardoso e Itamar Franco, estabilizou a economia. Criando uma nova moeda forte e controlando os gastos públicos, o plano trouxe previsibilidade econômica, reduziu a pobreza imediata e mudou a mentalidade financeira do país.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Ataque de 11 de Setembro",
@@ -866,7 +866,7 @@
     "continent": "América do Norte",
     "description": "Terroristas destroem o World Trade Center.",
     "content": "O ataque coordenado da Al-Qaeda às Torres Gêmeas e ao Pentágono matou quase 3.000 pessoas e chocou o mundo. O evento encerrou a década de otimismo pós-Guerra Fria e iniciou a 'Guerra ao Terror'. Levou às invasões do Afeganistão e Iraque, aumentou a vigilância estatal globalmente e redefiniu as relações internacionais e a segurança no século XXI.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Primavera Árabe",
@@ -877,7 +877,7 @@
     "continent": "África",
     "description": "Onda de protestos no Oriente Médio começando na Tunísia.",
     "content": "Iniciada na Tunísia, uma onda de protestos pró-democracia varreu o Oriente Médio e o Norte da África, derrubando ditadores de longa data na Tunísia, Egito, Líbia e Iêmen. Impulsionada pelas redes sociais, a 'Primavera' revelou o desejo por liberdade da juventude árabe, mas também levou a guerras civis (Síria) e instabilidade, com resultados mistos para a democracia na região.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Acordo de Paris",
@@ -888,7 +888,7 @@
     "continent": "Europa",
     "description": "Tratado global sobre mudanças climáticas.",
     "content": "Assinado por 195 países, o Acordo de Paris foi o primeiro pacto global abrangente para combater as mudanças climáticas. O objetivo central é limitar o aquecimento global a menos de 2°C acima dos níveis pré-industriais. Embora não vinculante em muitos aspectos, representou um consenso científico e político de que a ação humana está alterando o clima e exige uma resposta coordenada urgente.",
-    "is_manual": false
+    "source": "seed"
   },
   {
     "name": "Pandemia de COVID-19",
@@ -899,6 +899,17 @@
     "continent": "Ásia",
     "description": "Primeiros casos identificados em Wuhan.",
     "content": "O surgimento do coronavírus SARS-CoV-2 levou à maior pandemia em um século. O mundo parou com lockdowns, fechamento de fronteiras e colapso de sistemas de saúde. A crise acelerou a digitalização da vida, expôs desigualdades globais e gerou uma corrida científica sem precedentes que resultou no desenvolvimento de vacinas em tempo recorde, alterando permanentemente a sociedade global.",
-    "is_manual": false
+    "source": "seed"
+  },
+  {
+    "name": "Guerra da Ucrânia",
+    "year_start": 2022,
+    "year_end": 2026,
+    "latitude": 50.45,
+    "longitude": 30.52,
+    "continent": "Europa",
+    "description": "Invasão em larga escala da Ucrânia pela Rússia.",
+    "content": "Iniciada em 24 de fevereiro de 2022, a invasão russa da Ucrânia tornou-se o maior conflito militar na Europa desde a Segunda Guerra Mundial. O conflito causou uma crise humanitária global, com milhões de refugiados, e alterou profundamente a geopolítica, fortalecendo a OTAN e provocando sanções econômicas sem precedentes contra a Rússia. Até o início de 2026, a guerra permanece marcada por impasses territoriais no leste e sul da Ucrânia e intensas negociações diplomáticas mediadas pela comunidade internacional.",
+    "source": "seed"
   }
 ]

@@ -47,4 +47,31 @@ export const populateApi = {
   stop: () => api.post('/populate/stop')
 };
 
+export const kaggleApi = {
+  // Salva ou atualiza a chave API
+  saveConfig: (data) => api.post('/kaggle/config', data),
+  
+  // Verifica se já existe uma config salva
+  checkConfig: () => api.get('/kaggle/config/active'),
+  
+  // Dispara o download e processamento
+  runImport: (datasetId) => api.post('/kaggle/import', { kaggle_id: datasetId }),
+
+  // Para o processo em andamento
+  stopImport: (taskId) => api.post(`/kaggle/stop/${taskId}`),
+  
+  // Pega o status do processo (polling)
+  getStatus: (taskId) => api.get(`/kaggle/status/${taskId}`)
+};
+
+export const settingsApi = {
+  // Integrações (Kaggle)
+  getIntegrations: () => api.get('/settings/integrations'),
+  deleteIntegration: (id) => api.delete(`/settings/integrations/${id}`),
+  
+  // GeoNames
+  getGeonamesStats: () => api.get('/settings/geonames/stats'),
+  syncGeonames: () => api.post('/settings/geonames/sync'),
+};
+
 export default api;

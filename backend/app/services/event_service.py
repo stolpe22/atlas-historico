@@ -139,19 +139,20 @@ class EventService:
             longitude=shape.x
         )
 
-    def _to_geo_feature(self, event:  HistoricalEvent) -> EventGeoFeature:
+    def _to_geo_feature(self, event: HistoricalEvent) -> EventGeoFeature:
         """Converte modelo para GeoJSON Feature."""
         geom = to_shape(event.location)
         return EventGeoFeature(
             geometry=mapping(geom),
             properties={
                 "id": event.id,
-                "name":  event.name,
+                "name": event.name,
                 "description": event.description,
                 "content": event.content,
-                "year":  event.year_start,
+                "year": event.year_start,
+                "year_end": event.year_end, # <--- ADICIONE ESTA LINHA
                 "period": event.period,
                 "continent": event.continent,
-                "source":  event.source.value if event.source else None
+                "source": event.source.value if event.source else None
             }
         )

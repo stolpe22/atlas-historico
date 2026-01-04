@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, Base
-from .routes import events_router, populate_router
+from .routes import events_router, populate_router, kaggle_router, settings_router
 from .config import get_settings
 
 settings = get_settings()
@@ -29,6 +29,8 @@ app.add_middleware(
 # Rotas
 app.include_router(events_router)
 app.include_router(populate_router)
+app.include_router(kaggle_router)
+app.include_router(settings_router)
 
 
 @app.get("/health")

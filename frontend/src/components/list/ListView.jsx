@@ -1,7 +1,7 @@
 import React from 'react';
 import { List, Trash2 } from 'lucide-react';
 import SourceBadge from '../common/SourceBadge';
-import { formatYear } from '../../utils/formatters';
+import { formatYearRange } from '../../utils/formatters';
 
 const ListView = ({ events, onViewDetails, onDelete }) => {
   return (
@@ -47,7 +47,7 @@ const ListView = ({ events, onViewDetails, onDelete }) => {
                   className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition duration-150"
                 >
                   <td className="p-4 font-mono text-brand-600 dark:text-brand-400 font-bold whitespace-nowrap">
-                    {formatYear(evt.year_start)}
+                    {formatYearRange(evt.year_start, evt.year_end)}
                   </td>
                   
                   <td className="p-4 font-medium text-slate-700 dark:text-slate-200">
