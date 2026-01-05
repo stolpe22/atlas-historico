@@ -12,13 +12,6 @@ def seed_integrations(db: Session):
             "logo_url": "https://www.kaggle.com/static/images/site-logo.svg",
             "form_schema": [
                 {
-                    "key": "username",
-                    "label": "Kaggle Username",
-                    "type": "text",
-                    "required": False,
-                    "placeholder": "Ex: seu_usuario"
-                },
-                {
                     "key": "api_key",
                     "label": "API Token (Key)",
                     "type": "password",

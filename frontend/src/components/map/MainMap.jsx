@@ -111,13 +111,18 @@ const MainMap = ({
               ]} 
               icon={createLabelIcon(
                 feature.properties.name, 
-                feature.properties.year,      // Backend manda como 'year'
-                feature.properties.year_end   // Backend agora manda 'year_end'
+                feature.properties.year,
+                feature.properties.year_end
               )}
               eventHandlers={{
                 click: () => {
-                  if (! isAddingMode) {
-                    onMarkerClick(feature.properties);
+                  if (!isAddingMode) {
+                    // ✅ CORREÇÃO: Injetamos as coordenadas no objeto antes de enviar
+                    onMarkerClick({
+                      ...feature.properties,
+                      latitude: feature.geometry.coordinates[1],
+                      longitude: feature.geometry.coordinates[0]
+                    });
                   }
                 }
               }}
