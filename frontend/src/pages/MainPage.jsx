@@ -18,23 +18,30 @@ import { usePopulate } from '../hooks/usePopulate';
 import { CONTINENTS, DEFAULT_DATE_RANGE } from '../utils/constants';
 
 const MainPage = () => {
+  // UI & filtros
   const [dateRange, setDateRange] = useState(DEFAULT_DATE_RANGE);
-  const [selectedContinent, setSelectedContinent] = useState("Todos");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("map");
+  const [selectedContinent, setSelectedContinent] = useState('Todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('map');
   const [focusPosition, setFocusPosition] = useState(null);
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [modalMode, setModalMode] = useState("view");
+  const [modalMode, setModalMode] = useState('view');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteData, setDeleteData] = useState(null);
   const [notification, setNotification] = useState(null);
   const [newEvent, setNewEvent] = useState({
-    name: "", description: "", content: "", year_start: "",
-    latitude: 0, longitude: 0, continent: "Outro"
+    name: '',
+    description: '',
+    content: '',
+    year_start: '',
+    latitude: 0,
+    longitude: 0,
+    continent: 'Outro',
   });
   const [etlSlug, setEtlSlug] = useState(null);
 
+  // Dados
   const { mapEvents, refresh: refreshEvents, createEvent, deleteEvent, filterEvents } = useEvents(dateRange, selectedContinent);
   const { startETL, progressTrigger } = useETL();
 
@@ -43,8 +50,13 @@ const MainPage = () => {
   }, [progressTrigger, refreshEvents]);
 
   const {
-    isPopulating, logs: populateLogs, showModal: showPopulateModal,
-    setShowModal: setShowPopulateModal, startExtraction, startSeed, stop: stopPopulate
+    isPopulating,
+    logs: populateLogs,
+    showModal: showPopulateModal,
+    setShowModal: setShowPopulateModal,
+    startExtraction,
+    startSeed,
+    stop: stopPopulate,
   } = usePopulate((notif) => {
     setNotification(notif);
     refreshEvents();
@@ -52,24 +64,36 @@ const MainPage = () => {
 
   const filteredEvents = filterEvents(searchTerm);
 
+  // Handlers
   const handleAddStart = useCallback(() => {
     if (!showEventModal && !isAddingMode) {
-      setNewEvent({ name: "", description: "", content: "", year_start: "", latitude: 0, longitude: 0, continent: "Outro" });
+      setNewEvent({
+        name: '',
+        description: '',
+        content: '',
+        year_start: '',
+        latitude: 0,
+        longitude: 0,
+        continent: 'Outro',
+      });
     }
-    if (viewMode === 'map') setIsAddingMode(prev => !prev);
-    else { setModalMode("create"); setShowEventModal(true); }
+    if (viewMode === 'map') setIsAddingMode((prev) => !prev);
+    else {
+      setModalMode('create');
+      setShowEventModal(true);
+    }
   }, [showEventModal, isAddingMode, viewMode]);
 
   const handleMapClick = useCallback((latlng) => {
     setIsAddingMode(false);
-    setNewEvent(prev => ({ ...prev, latitude: latlng.lat, longitude: latlng.lng }));
-    setModalMode("create");
+    setNewEvent((prev) => ({ ...prev, latitude: latlng.lat, longitude: latlng.lng }));
+    setModalMode('create');
     setShowEventModal(true);
   }, []);
 
   const handleEventClick = useCallback((evt) => {
     setSelectedEvent(evt);
-    setModalMode("view");
+    setModalMode('view');
     setShowEventModal(true);
     setFocusPosition([evt.latitude, evt.longitude]);
   }, []);
@@ -79,7 +103,7 @@ const MainPage = () => {
       setNotification({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
       return;
     }
-    const result = await createEvent({ ...newEvent, year_start: parseInt(newEvent.year_start), source: "manual" });
+    const result = await createEvent({ ...newEvent, year_start: parseInt(newEvent.year_start), source: 'manual' });
     if (result.success) {
       setNotification({ type: 'success', title: 'Salvo!', message: 'Evento registrado.' });
       setShowEventModal(false);
@@ -104,14 +128,20 @@ const MainPage = () => {
     setDeleteData(null);
   }, [deleteData, deleteEvent]);
 
+  const handleRunSeed = () => setEtlSlug('seed');
+
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">
       <div className="flex-1 flex flex-col h-full relative min-w-0">
         <Header
-          searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-          selectedContinent={selectedContinent} setSelectedContinent={setSelectedContinent}
-          dateRange={dateRange} setDateRange={setDateRange}
-          filteredCount={filteredEvents.length} continents={CONTINENTS}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedContinent={selectedContinent}
+          setSelectedContinent={setSelectedContinent}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          filteredCount={filteredEvents.length}
+          continents={CONTINENTS}
         />
 
         {isPopulating && (
@@ -123,12 +153,15 @@ const MainPage = () => {
         )}
 
         <div className="flex-1 relative overflow-hidden">
+          {/* Troca de visão */}
           <div className="absolute top-4 w-full flex justify-center z-[400] pointer-events-none">
             <div className="bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 p-1 flex pointer-events-auto backdrop-blur-md bg-opacity-90">
               <button
                 onClick={() => setViewMode('map')}
                 className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'map' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  viewMode === 'map'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <MapIcon size={14} /> Mapa
@@ -136,7 +169,9 @@ const MainPage = () => {
               <button
                 onClick={() => setViewMode('table')}
                 className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  viewMode === 'table'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <List size={14} /> Lista
@@ -155,21 +190,24 @@ const MainPage = () => {
 
           {viewMode === 'map' ? (
             <MainMap
-              events={mapEvents} focusPosition={focusPosition}
+              events={mapEvents}
+              focusPosition={focusPosition}
               isAddingMode={isAddingMode}
-              onMapClick={handleMapClick} onMarkerClick={handleEventClick}
+              onMapClick={handleMapClick}
+              onMarkerClick={handleEventClick}
             />
           ) : (
-            <ListView
-              events={filteredEvents} onViewDetails={handleEventClick} onDelete={handleRequestDelete}
-            />
+            <ListView events={filteredEvents} onViewDetails={handleEventClick} onDelete={handleRequestDelete} />
           )}
 
+          {/* FAB */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[400]">
             <button
               onClick={handleAddStart}
               className={`group flex items-center justify-center w-16 h-16 rounded-full shadow-2xl border-4 transition-all duration-300 hover:scale-110 ${
-                isAddingMode ? 'bg-red-500 border-red-200 dark:border-red-900 text-white rotate-90' : 'bg-blue-600 border-blue-200 dark:border-blue-900 text-white'
+                isAddingMode
+                  ? 'bg-red-500 border-red-200 dark:border-red-900 text-white rotate-90'
+                  : 'bg-blue-600 border-blue-200 dark:border-blue-900 text-white'
               }`}
             >
               {isAddingMode ? <X size={32} /> : <Plus size={32} />}
@@ -181,26 +219,62 @@ const MainPage = () => {
       <Sidebar
         events={filteredEvents}
         onEventClick={handleEventClick}
-        onRunSeed={async () => { await startSeed(); refreshEvents(); }}
+        onRunSeed={handleRunSeed}
         onOpenPopulate={() => setShowPopulateModal(true)}
         onOpenKaggle={() => setEtlSlug('kaggle')}
       />
 
+      {/* Modais */}
       <EventModal
-        isOpen={showEventModal} onClose={() => setShowEventModal(false)}
-        mode={modalMode} eventData={selectedEvent} newEvent={newEvent} setNewEvent={setNewEvent}
-        onSave={handleSaveEvent} onPickFromMap={() => { setShowEventModal(false); setViewMode('map'); setIsAddingMode(true); }}
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        mode={modalMode}
+        eventData={selectedEvent}
+        newEvent={newEvent}
+        setNewEvent={setNewEvent}
+        onSave={handleSaveEvent}
+        onPickFromMap={() => {
+          setShowEventModal(false);
+          setViewMode('map');
+          setIsAddingMode(true);
+        }}
         continents={CONTINENTS}
       />
 
-      <ConfirmModal isOpen={!!deleteData} onClose={() => setDeleteData(null)} onConfirm={handleConfirmDelete} title="Excluir?" message={`Apagar "${deleteData?.name}"?`} />
+      <ConfirmModal
+        isOpen={!!deleteData}
+        onClose={() => setDeleteData(null)}
+        onConfirm={handleConfirmDelete}
+        title="Excluir?"
+        message={`Apagar "${deleteData?.name}"?`}
+      />
 
-      <PopulateModal isOpen={showPopulateModal} onClose={() => setShowPopulateModal(false)} onConfirm={startExtraction} isLoading={isPopulating} logs={populateLogs} onStop={stopPopulate} />
+      <PopulateModal
+        isOpen={showPopulateModal}
+        onClose={() => setShowPopulateModal(false)}
+        onConfirm={startExtraction}
+        isLoading={isPopulating}
+        logs={populateLogs}
+        onStop={stopPopulate}
+      />
 
       <ETLModal
         isOpen={!!etlSlug}
         onClose={() => setEtlSlug(null)}
         integrationSlug={etlSlug}
+        onRunOverride={
+          etlSlug === 'seed'
+            ? async () => {
+                await startSeed();
+                setNotification({
+                  type: 'success',
+                  title: 'Seed concluído',
+                  message: 'Dados restaurados de manual_events.json.'
+                });
+                refreshEvents();
+              }
+            : undefined
+        }
       />
 
       <NotificationModal notification={notification} onClose={() => setNotification(null)} />

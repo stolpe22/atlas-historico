@@ -111,7 +111,7 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
     if api_queue:
         log(f"☁️ [FASE 2] API Nominatim para {len(api_queue)} registros...")
         geolocator = Nominatim(user_agent="atlas_historico_v3")
-        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1.1)
+        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1.5, max_retries=2, error_wait_seconds=2.0)
 
         for i, row in enumerate(api_queue):
             if stop_check_callback and stop_check_callback():

@@ -8,12 +8,10 @@ const Sidebar = ({
   onOpenPopulate,
   onOpenKaggle
 }) => {
-  // Estado para controlar o menu "Obter Dados"
   const [isImportMenuOpen, setIsImportMenuOpen] = useState(false);
 
   return (
     <aside className="h-full w-80 flex-none bg-white dark:bg-slate-900 shadow-xl border-l border-slate-200 dark:border-slate-800 flex flex-col transition-colors duration-300 z-20">
-      
       {/* Header */}
       <div className="flex-none p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
         <div className="flex justify-between items-center mb-2">
@@ -63,7 +61,6 @@ const Sidebar = ({
       {/* Footer: Menu de Importação */}
       <div className="flex-none p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-2">
         
-        {/* Botão Principal */}
         <button 
           onClick={() => setIsImportMenuOpen(!isImportMenuOpen)}
           className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-bold transition shadow-sm border ${
@@ -79,13 +76,13 @@ const Sidebar = ({
           {isImportMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
 
-        {/* Menu Accordion */}
         {isImportMenuOpen && (
           <div className="space-y-2 animate-in slide-in-from-bottom-2 fade-in duration-200 pt-2 pl-2 border-l-2 border-slate-200 dark:border-slate-700 ml-2">
             
+            {/* Seed usa o mesmo ETLModal */}
             <button 
               onClick={onRunSeed}
-              className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
+              className="w-full flex items-start gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
             >
               <FileJson size={16} className="text-orange-500" />
               <div>
@@ -99,7 +96,7 @@ const Sidebar = ({
               className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
             >
               <Database size={16} className="text-purple-500" />
-               <div>
+              <div>
                 <span className="font-medium block">Gerador (Wikidata)</span>
                 <span className="text-[10px] opacity-70">Extração online</span>
               </div>
@@ -110,7 +107,7 @@ const Sidebar = ({
               className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
             >
               <Play size={16} className="text-blue-500" />
-               <div>
+              <div>
                 <span className="font-medium block">Kaggle Import</span>
                 <span className="text-[10px] opacity-70">Datasets massivos</span>
               </div>
