@@ -20,7 +20,7 @@ Aplicação full-stack para explorar eventos históricos em mapa e lista, com cr
 - [ETL, Seed e integrações](#etl-seed-e-integrações)
   - [Seeder de integrações (`seeder.py`)](#seeder-de-integrações-seederpy)
   - [Seed local de eventos (`manual_events.json`)](#seed-local-de-eventos-manual_eventsjson)
-  - [Integrações Kaggle / OpenAI](#integrações-kaggle--openai)
+  - [Integração Kaggle](#integração-kaggle)
   - [Wikidata / Gerador](#wikidata--gerador)
 - [Tradução no modal de eventos](#tradução-no-modal-de-eventos)
 - [Fluxo de uso na UI](#fluxo-de-uso-na-ui)
@@ -133,27 +133,25 @@ O que faz:
 - Define `slug`, `name`, `description`, `logo_url` e `form_schema` (campos que a UI pedirá no modal).
 - Atualiza `form_schema`/`name` se a integração já existir.
 
-Integrações pré-definidas:
+Integração pré-definida:
 - **kaggle**
   - Descrição: Importação de datasets históricos massivos.
   - Campo exigido: `api_key` (password, placeholder `KGAT_...`).
-- **openai**
-  - Descrição: Enriquecimento de dados com IA.
-  - Campo exigido: `api_key` (password, placeholder `sk-...`).
 
 ### Seed local de eventos (`manual_events.json`)
 - Local: `backend/data/manual_events.json`.
 - Disparo: UI → Sidebar → “Obter Dados” → “Restaurar Local”.
 - Restaura um conjunto base de eventos (com coordenadas) no banco.
 
-### Integrações Kaggle / OpenAI
-- Configuradas via `seeder.py` e exibidas nos modais de ETL.
-- Campos solicitados seguem o `form_schema`.
-- Dependem das chaves fornecidas pelo usuário (ex.: Kaggle API Token, OpenAI API Key).
+### Integração Kaggle
+- Configurada via `seeder.py` e exibida nos modais de ETL.
+- Campo solicitado segue o `form_schema` (`api_key`).
+- Depende do token fornecido pelo usuário.
 
-### Wikidata / Gerador
+### Wikidata / Gerador (em breve)
 - Suporte a importação via Wikidata (ver `app/services/wikidata_service.py`, `etl/wikidata`).
 - Pode envolver geocodificação remota; em lotes grandes, espere mais latência.
+
 
 ---
 
@@ -180,7 +178,7 @@ Integrações pré-definidas:
 6) Exclusão:
    - Só eventos `source=manual` podem ser removidos (o backend bloqueia outros).
 7) Integrações:
-   - Via modais de ETL; os campos exigidos vêm do `form_schema` (ex.: Kaggle/OpenAI).
+   - Via modais de ETL; os campos exigidos vêm do `form_schema` (ex.: Kaggle).
 
 ---
 
