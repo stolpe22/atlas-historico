@@ -5,6 +5,7 @@ WORKDIR /app
 # Permite configurar a URL da API no build
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_TRANSLATE_URL=http://localhost:5000
 
 COPY package.json package-lock.json ./
 RUN npm install

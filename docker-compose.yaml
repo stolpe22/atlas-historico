@@ -47,5 +47,14 @@ services:
     depends_on:
       - backend
 
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: atlas_libretranslate
+    restart: always
+    ports:
+      - "5000:5000"   # acessível em http://localhost:5000
+    environment:
+      - LT_LOAD_ONLY=en,pt
+
 volumes:
   postgres_data:
