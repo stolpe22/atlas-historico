@@ -11,7 +11,7 @@ import ConfirmModal from '../components/modals/ConfirmModal';
 import NotificationModal from '../components/modals/NotificationModal';
 import PopulateModal from '../components/modals/PopulateModal';
 import PopulateIndicator from '../components/common/PopulateIndicator';
-import KaggleModal from '../components/modals/KaggleModal';
+import ETLModal from '../components/modals/ETLModal';
 
 import { useEvents } from '../hooks/useEvents';
 import { usePopulate } from '../hooks/usePopulate';
@@ -35,6 +35,8 @@ const MainPage = () => {
     name: "", description: "", content: "", year_start: "",
     latitude: 0, longitude: 0, continent: "Outro"
   });
+  const [etlSlug, setEtlSlug] = useState(null); // 'kaggle', 'openai', etc.
+// Remova showKaggleModal
 
   const { mapEvents, refresh: refreshEvents, createEvent, deleteEvent, filterEvents } = useEvents(dateRange, selectedContinent);
   
@@ -193,7 +195,7 @@ const MainPage = () => {
         onEventClick={handleEventClick}
         onRunSeed={async () => { await startSeed(); refreshEvents(); }}
         onOpenPopulate={() => setShowPopulateModal(true)}
-        onOpenKaggle={() => setShowKaggleModal(true)}
+        onOpenKaggle={() => setEtlSlug('kaggle')}
       />
 
       {/* Modals */}
@@ -205,7 +207,12 @@ const MainPage = () => {
       />
       <ConfirmModal isOpen={!!deleteData} onClose={() => setDeleteData(null)} onConfirm={handleConfirmDelete} title="Excluir?" message={`Apagar "${deleteData?.name}"?`} />
       <PopulateModal isOpen={showPopulateModal} onClose={() => setShowPopulateModal(false)} onConfirm={startExtraction} isLoading={isPopulating} logs={populateLogs} onStop={stopPopulate} />
-      <KaggleModal isOpen={showKaggleModal} onClose={() => setShowKaggleModal(false)} onSuccess={() => { refreshEvents(); }} />
+      <ETLModal 
+          isOpen={!!etlSlug}
+          onClose={() => setEtlSlug(null)}
+          integrationSlug={etlSlug} // Passa 'kaggle' aqui
+          onSuccess={() => refreshEvents()}
+        />
       <NotificationModal notification={notification} onClose={() => setNotification(null)} />
     </div>
   );

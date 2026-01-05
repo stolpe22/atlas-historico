@@ -67,11 +67,26 @@ export const kaggleApi = {
 export const settingsApi = {
   // Integrações (Kaggle)
   getIntegrations: () => api.get('/settings/integrations'),
+  connectIntegration: (data) => api.post('/settings/integrations/connect', data),
   deleteIntegration: (id) => api.delete(`/settings/integrations/${id}`),
+
+  initDefinitions: () => api.post('/settings/init'),
   
   // GeoNames
   getGeonamesStats: () => api.get('/settings/geonames/stats'),
   syncGeonames: () => api.post('/settings/geonames/sync'),
+
+  getTaskStatus: (taskId) => api.get(`/etl/status/${taskId}`),
+
+};
+
+export const etlApi = { // Renomeie kaggleApi para etlApi ou mantenha e atualize
+    // Rota genérica nova
+    runIntegration: (slug, params) => api.post('/etl/run', { slug, params }),
+    
+    // Status e Stop continuam iguais, só muda a URL base se quiser
+    stopTask: (taskId) => api.post(`/etl/stop/${taskId}`),
+    getTaskStatus: (taskId) => api.get(`/etl/status/${taskId}`)
 };
 
 export default api;

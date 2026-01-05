@@ -1,76 +1,65 @@
-import kagglehub
-import pandas as pd
 import os
-import glob
+import json
+import pandas as pd
 from sqlalchemy.orm import Session
-from app.models import KaggleDataset, KaggleStaging
-from .auth import configure_kaggle_env
+from ...models import KaggleStaging
 
-def extract_and_load_staging(db: Session, kaggle_dataset_id: str):
+# REMOVIDO DO TOPO: from kaggle.api.kaggle_api_extended import KaggleApi
+
+def extract_and_load_staging(db: Session, dataset_id: str):
     """
-    Baixa o CSV e salva no Staging.
-    TRAVA: Se já existir no banco, pula o download.
+    Baixa o dataset do Kaggle e salva na tabela Staging.
     """
-    # 1. VERIFICAÇÃO INTELIGENTE (AQUI É A MUDANÇA)
-    existing_dataset = db.query(KaggleDataset).filter(
-        KaggleDataset.kaggle_id == kaggle_dataset_id
-    ).first()
-
-    # Se já existe e tem dados, não baixa de novo!
-    if existing_dataset and existing_dataset.record_count > 0:
-        print(f"📦 Dataset já carregado ({existing_dataset.record_count} registros). Pulando download.")
-        return existing_dataset.id
-
-    # --- Se não existe, segue o fluxo normal de download ---
     
-    configure_kaggle_env(db)
-    print(f"⬇️  Baixando dataset do Kaggle: {kaggle_dataset_id}...")
-    
+    # 1. Autenticação (Importação Tardia para evitar crash no startup)
     try:
-        path = kagglehub.dataset_download(kaggle_dataset_id)
-        print(f"📂 Arquivos baixados em: {path}")
+        # 👇 O IMPORT VEM PARA CÁ (LAZY IMPORT)
+        from kaggle.api.kaggle_api_extended import KaggleApi
+        
+        api = KaggleApi()
+        api.authenticate() # Agora vai funcionar pois o Adapter já setou as ENVs
     except Exception as e:
-        raise ConnectionError(f"Erro no download: {e}")
+        raise Exception(f"Falha na autenticação do Kaggle. Verifique as credenciais: {str(e)}")
 
-    csv_files = glob.glob(f"{path}/*.csv")
-    if not csv_files:
-        raise FileNotFoundError("Nenhum CSV encontrado.")
-    
-    csv_path = csv_files[0]
-    
-    # Cria ou Atualiza o registro do Dataset
-    if not existing_dataset:
-        dataset = KaggleDataset(
-            kaggle_id=kaggle_dataset_id,
-            title=kaggle_dataset_id.split("/")[-1],
-            local_path=path,
-            status="downloading"
-        )
-        db.add(dataset)
-        db.commit()
-        db.refresh(dataset)
-    else:
-        dataset = existing_dataset
+    download_path = "/tmp/kaggle_data"
+    os.makedirs(download_path, exist_ok=True)
 
-    # Lê CSV e Salva no Staging
-    df = pd.read_csv(csv_path)
-    df = df.where(pd.notnull(df), None)
-    records = df.to_dict(orient="records")
-    total = len(records)
+    # 2. Download
+    print(f"⬇️ Baixando {dataset_id}...")
+    try:
+        api.dataset_download_files(dataset_id, path=download_path, unzip=True)
+    except Exception as e:
+        raise Exception(f"Erro ao baixar dataset: {str(e)}")
+
+    # 3. Localizar o arquivo CSV correto
+    target_file = "WorldImportantEvents.csv" 
+    file_path = os.path.join(download_path, target_file)
+
+    if not os.path.exists(file_path):
+        files = [f for f in os.listdir(download_path) if f.endswith('.csv')]
+        if not files:
+            raise Exception("Nenhum arquivo CSV encontrado no dataset baixado.")
+        file_path = os.path.join(download_path, files[0])
+
+    # 4. Carregar no Pandas e Salvar no Staging
+    print(f"📖 Lendo {file_path}...")
+    df = pd.read_csv(file_path)
     
-    print(f"💾 Salvando {total} registros brutos no banco...")
+    # Limpa dados anteriores desse dataset para evitar duplicação no Staging
+    db.query(KaggleStaging).filter(KaggleStaging.kaggle_id == dataset_id).delete()
     
     staging_objects = []
-    for row in records:
-        staging_objects.append(
-            KaggleStaging(dataset_id=dataset.id, data=row, processed=False)
-        )
-    
+    for _, row in df.iterrows():
+        # Converte NaN para None (JSON válido)
+        row_dict = row.where(pd.notnull(row), None).to_dict()
+        
+        staging_objects.append(KaggleStaging(
+            kaggle_id=dataset_id,
+            raw_data=row_dict # Salva como JSONb
+        ))
+
+    print(f"💾 Salvando {len(staging_objects)} registros no Staging...")
     db.bulk_save_objects(staging_objects)
-    
-    dataset.record_count = total
-    dataset.status = "ready"
     db.commit()
-    
-    print("✅ Carga no Staging concluída.")
-    return dataset.id
+
+    return dataset_id

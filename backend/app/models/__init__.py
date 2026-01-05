@@ -21,6 +21,7 @@ from .events import HistoricalEvent, EventSource
 from .kaggle import KaggleConfig, KaggleDataset, KaggleStaging
 from .wikidata import WikidataExtraction
 from .geonames import GeonamesCity
+from .integrations import IntegrationDefinition, UserIntegration
 
 __all__ = [
     "HistoricalEvent", 
@@ -29,5 +30,7 @@ __all__ = [
     "KaggleDataset",
     "KaggleStaging",
     "WikidataExtraction",
-    "GeonamesCity"
+    "GeonamesCity",
+    "IntegrationDefinition",
+    "UserIntegration"
 ]
