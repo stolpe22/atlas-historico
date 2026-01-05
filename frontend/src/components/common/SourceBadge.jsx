@@ -1,37 +1,24 @@
 import React from 'react';
-import { Database, Globe, User } from 'lucide-react';
-
-const SOURCE_CONFIG = {
-  manual: {
-    icon: User,
-    label: "Manual",
-    className: "bg-green-100 text-green-700 border-green-200"
-  },
-  seed: {
-    icon: Database,
-    label: "Fixo",
-    className: "bg-purple-100 text-purple-700 border-purple-200"
-  },
-  wikidata: {
-    icon: Globe,
-    label:  "Wiki",
-    className:  "bg-blue-100 text-blue-700 border-blue-200"
-  }
-};
+import { User, Database } from 'lucide-react';
 
 const SourceBadge = ({ source }) => {
-  const config = SOURCE_CONFIG[source];
-  if (!config) return null;
+  if (!source) return null;
 
-  const Icon = config.icon;
+  const isManual = source === 'manual';
+  const label = source.charAt(0).toUpperCase() + source.slice(1);
+
+  const Icon = isManual ? User : Database;
+  const className = isManual
+    ? "bg-green-100 text-green-700 border-green-200"
+    : "bg-blue-100 text-blue-700 border-blue-200";
 
   return (
-    <span 
-      className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold ${config.className}`}
-      title={`Origem: ${config.label}`}
+    <span
+      className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-bold ${className}`}
+      title={`Origem: ${label}`}
     >
       <Icon size={10} />
-      {config.label}
+      {label}
     </span>
   );
 };

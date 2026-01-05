@@ -1,46 +1,49 @@
 version: '3.8'
 
 services:
-  # 1. Banco de Dados
   db:
     image: postgis/postgis:16-3.4
     container_name: atlas_db
     restart: always
     ports:
-    - "5434:5432" #porta externa 5434
+      - "5434:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: history_atlas
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./db_init/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d history_atlas"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # 2. Backend (API)
   backend:
     build: ./backend
     container_name: atlas_backend
     restart: always
     environment:
       - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=history_atlas
+      - DB_USER=admin
+      - DB_PASSWORD=admin
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
 
-  # 3. Frontend (React + Nginx)
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
     container_name: atlas_frontend
     restart: always
     ports:
-      - "3000:80" # Acessa no navegador por localhost:3000
+      - "3000:80"
     depends_on:
       - backend
 

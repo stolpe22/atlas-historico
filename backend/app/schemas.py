@@ -7,6 +7,8 @@ class EventSourceEnum(str, Enum):
     manual = "manual"
     wikidata = "wikidata"
     seed = "seed"
+    kaggle = "kaggle"
+
 
 
 # ============================================================================

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { List, Plus, X, Map as MapIcon, MapPin } from 'lucide-react';
 
-// Components
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import MainMap from '../components/map/MainMap';
@@ -13,14 +12,12 @@ import PopulateModal from '../components/modals/PopulateModal';
 import PopulateIndicator from '../components/common/PopulateIndicator';
 import ETLModal from '../components/modals/ETLModal';
 
-// Hooks & Context
 import { useETL } from '../context/ETLContext';
 import { useEvents } from '../hooks/useEvents';
 import { usePopulate } from '../hooks/usePopulate';
 import { CONTINENTS, DEFAULT_DATE_RANGE } from '../utils/constants';
 
 const MainPage = () => {
-  // 1. Estados de UI e Filtros
   const [dateRange, setDateRange] = useState(DEFAULT_DATE_RANGE);
   const [selectedContinent, setSelectedContinent] = useState("Todos");
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,18 +35,11 @@ const MainPage = () => {
   });
   const [etlSlug, setEtlSlug] = useState(null);
 
-  // 2. Hooks de Dados
   const { mapEvents, refresh: refreshEvents, createEvent, deleteEvent, filterEvents } = useEvents(dateRange, selectedContinent);
-  
-  // ✅ CORRIGIDO: Apenas uma declaração para os hooks do ETL
   const { startETL, progressTrigger } = useETL();
 
-  // 3. Efeito para recarregar o mapa em tempo real quando o ETL processa itens
   useEffect(() => {
-    if (progressTrigger > 0) {
-      console.log("🔄 ETL avançou, atualizando mapa...");
-      refreshEvents(); // ✅ CORRIGIDO: De loadEvents() para refreshEvents()
-    }
+    if (progressTrigger > 0) refreshEvents();
   }, [progressTrigger, refreshEvents]);
 
   const {
@@ -62,7 +52,6 @@ const MainPage = () => {
 
   const filteredEvents = filterEvents(searchTerm);
 
-  // 4. Handlers
   const handleAddStart = useCallback(() => {
     if (!showEventModal && !isAddingMode) {
       setNewEvent({ name: "", description: "", content: "", year_start: "", latitude: 0, longitude: 0, continent: "Outro" });
@@ -86,23 +75,23 @@ const MainPage = () => {
   }, []);
 
   const handleSaveEvent = useCallback(async () => {
-    if (!newEvent.name || !newEvent.year_start) { 
-      setNotification({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' }); 
-      return; 
+    if (!newEvent.name || !newEvent.year_start) {
+      setNotification({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
+      return;
     }
     const result = await createEvent({ ...newEvent, year_start: parseInt(newEvent.year_start), source: "manual" });
-    if (result.success) { 
-      setNotification({ type: 'success', title: 'Salvo!', message: 'Evento registrado.' }); 
-      setShowEventModal(false); 
+    if (result.success) {
+      setNotification({ type: 'success', title: 'Salvo!', message: 'Evento registrado.' });
+      setShowEventModal(false);
     } else {
       setNotification({ type: 'error', title: 'Erro', message: 'Falha ao salvar.' });
     }
   }, [newEvent, createEvent]);
 
   const handleRequestDelete = useCallback((evt) => {
-    if (evt.source !== 'manual') { 
-      setNotification({ type: 'warning', title: 'Bloqueado', message: 'Apenas eventos manuais podem ser excluídos.' }); 
-      return; 
+    if (evt.source !== 'manual') {
+      setNotification({ type: 'warning', title: 'Bloqueado', message: 'Apenas eventos manuais podem ser excluídos.' });
+      return;
     }
     setDeleteData({ id: evt.id, name: evt.name });
   }, []);
@@ -118,8 +107,7 @@ const MainPage = () => {
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">
       <div className="flex-1 flex flex-col h-full relative min-w-0">
-        
-        <Header 
+        <Header
           searchTerm={searchTerm} setSearchTerm={setSearchTerm}
           selectedContinent={selectedContinent} setSelectedContinent={setSelectedContinent}
           dateRange={dateRange} setDateRange={setDateRange}
@@ -127,7 +115,7 @@ const MainPage = () => {
         />
 
         {isPopulating && (
-          <PopulateIndicator 
+          <PopulateIndicator
             lastLog={populateLogs[populateLogs.length - 1]}
             onMaximize={() => setShowPopulateModal(true)}
             onStop={stopPopulate}
@@ -135,7 +123,6 @@ const MainPage = () => {
         )}
 
         <div className="flex-1 relative overflow-hidden">
-          {/* Pílula de Troca de Visão */}
           <div className="absolute top-4 w-full flex justify-center z-[400] pointer-events-none">
             <div className="bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 p-1 flex pointer-events-auto backdrop-blur-md bg-opacity-90">
               <button
@@ -167,20 +154,19 @@ const MainPage = () => {
           )}
 
           {viewMode === 'map' ? (
-            <MainMap 
+            <MainMap
               events={mapEvents} focusPosition={focusPosition}
               isAddingMode={isAddingMode}
               onMapClick={handleMapClick} onMarkerClick={handleEventClick}
             />
           ) : (
-            <ListView 
+            <ListView
               events={filteredEvents} onViewDetails={handleEventClick} onDelete={handleRequestDelete}
             />
           )}
 
-          {/* Botão FAB */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[400]">
-            <button 
+            <button
               onClick={handleAddStart}
               className={`group flex items-center justify-center w-16 h-16 rounded-full shadow-2xl border-4 transition-all duration-300 hover:scale-110 ${
                 isAddingMode ? 'bg-red-500 border-red-200 dark:border-red-900 text-white rotate-90' : 'bg-blue-600 border-blue-200 dark:border-blue-900 text-white'
@@ -192,7 +178,7 @@ const MainPage = () => {
         </div>
       </div>
 
-      <Sidebar 
+      <Sidebar
         events={filteredEvents}
         onEventClick={handleEventClick}
         onRunSeed={async () => { await startSeed(); refreshEvents(); }}
@@ -200,28 +186,23 @@ const MainPage = () => {
         onOpenKaggle={() => setEtlSlug('kaggle')}
       />
 
-      {/* Modais de Suporte */}
-      <EventModal 
+      <EventModal
         isOpen={showEventModal} onClose={() => setShowEventModal(false)}
         mode={modalMode} eventData={selectedEvent} newEvent={newEvent} setNewEvent={setNewEvent}
         onSave={handleSaveEvent} onPickFromMap={() => { setShowEventModal(false); setViewMode('map'); setIsAddingMode(true); }}
         continents={CONTINENTS}
       />
-      
+
       <ConfirmModal isOpen={!!deleteData} onClose={() => setDeleteData(null)} onConfirm={handleConfirmDelete} title="Excluir?" message={`Apagar "${deleteData?.name}"?`} />
-      
+
       <PopulateModal isOpen={showPopulateModal} onClose={() => setShowPopulateModal(false)} onConfirm={startExtraction} isLoading={isPopulating} logs={populateLogs} onStop={stopPopulate} />
-      
-      <ETLModal 
+
+      <ETLModal
         isOpen={!!etlSlug}
         onClose={() => setEtlSlug(null)}
         integrationSlug={etlSlug}
-        onStart={(params) => {
-          startETL(etlSlug, params);
-          setEtlSlug(null);
-        }}
       />
-      
+
       <NotificationModal notification={notification} onClose={() => setNotification(null)} />
     </div>
   );

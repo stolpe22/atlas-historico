@@ -4,6 +4,7 @@ from sqlalchemy import func, desc, and_
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from ...models import KaggleStaging, HistoricalEvent, EventSource, GeonamesCity
+from ...utils.helpers import calculate_period
 
 def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, log_callback=None, stop_check_callback=None):
     
@@ -175,6 +176,9 @@ def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
         row.processed = True
         return False
 
+    # período correto baseado no ano
+    period_val = calculate_period(year_clean)
+
     content_formatted = (
         f"Type Event: {raw.get('Type of Event', 'N/A')}\n\n"
         f"Impact: {raw.get('Impact', 'N/A')}\n\n"
@@ -191,6 +195,7 @@ def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
         existing_event.location = location_wkt
         existing_event.content = content_formatted
         existing_event.description = str(raw.get("Impact", ""))[:990]
+        existing_event.period = period_val
         row.processed = True
         return False
     else:
@@ -203,7 +208,7 @@ def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
             continent="Desconhecido",
             location=location_wkt,
             source=EventSource.KAGGLE,
-            period="Kaggle Import"
+            period=period_val  # <-- agora usa período correto
         )
         db.add(new_event)
         row.processed = True

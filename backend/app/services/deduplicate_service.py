@@ -5,40 +5,27 @@ from collections import defaultdict
 from ..config import get_settings
 
 settings = get_settings()
+API_URL = f"http://{settings.api_host}:{settings.api_port}"
 
-
-class DeduplicateService: 
+class DeduplicateService:
     """Serviço para deduplicação inteligente de eventos."""
-
-    API_URL = "http://localhost:8000/events"
-
     def __init__(self, tolerance_years: int = None):
         self.tolerance = tolerance_years or settings.year_tolerance
 
     def run(self) -> int:
-        """Executa deduplicação e retorna quantidade removida."""
         print("🧠 Iniciando Deduplicação Inteligente...")
-
         events = self._fetch_all_events()
         if not events:
             return 0
-
         print(f"📦 Total de eventos: {len(events)}")
-
         grouped = self._group_by_name(events)
         deleted_count = self._process_groups(grouped)
-
         print(f"🏁 Limpeza concluída!  Total apagado: {deleted_count}")
         return deleted_count
 
-    # ========================================================================
-    # MÉTODOS PRIVADOS
-    # ========================================================================
-
-    def _fetch_all_events(self) -> List[Dict]: 
-        """Busca todos os eventos da API."""
+    def _fetch_all_events(self) -> List[Dict]:
         try:
-            response = requests.get(f"{self.API_URL}/all")
+            response = requests.get(f"{API_URL}/events/all")
             return response.json()
         except Exception as e:
             print(f"❌ Erro ao conectar na API: {e}")
