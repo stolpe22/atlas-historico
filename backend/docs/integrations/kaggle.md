@@ -5,4 +5,4 @@
 3. Role até a seção **API**.
 4. Clique em **Generate New Token**.
 5. De um nome ao Token e clique em **Generate**.
-6. Copie o **API TOKEN** e Cole no campo API KEY do formulário de Integração.
+6. Copie o **API TOKEN** e Cole no campo **API Token (Key)** do formulário de Integração.
