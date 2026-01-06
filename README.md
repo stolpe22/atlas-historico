@@ -208,7 +208,6 @@ frontend/
 |       |-- ETLModal.jsx
 |       |-- EventModal.jsx
 |       |-- GlobalETLModal.jsx
-|       |-- KaggleModal.jsx
 |       |-- MinimizableModal.jsx
 |       |-- NotificationModal.jsx
 |       |-- PopulateModal.jsx
