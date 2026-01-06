@@ -128,7 +128,10 @@ const MainPage = () => {
     setDeleteData(null);
   }, [deleteData, deleteEvent]);
 
-  const handleRunSeed = () => setEtlSlug('seed');
+  const handleRunSeed = () => {
+    // Em vez de abrir o modal antigo ou chamar startSeed, chamamos o ETL unificado
+    startETL('seed', {}); 
+  };
 
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">

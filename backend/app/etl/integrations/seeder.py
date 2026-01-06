@@ -6,6 +6,13 @@ def seed_integrations(db: Session):
     
     definitions = [
         {
+            "slug": "seed",
+            "name": "Restaurar Banco Local",
+            "description": "Restaura eventos a partir do arquivo JSON local.",
+            "logo_url": "https://cdn-icons-png.flaticon.com/512/620/620851.png",
+            "form_schema": [] # Schema vazio = não precisa de formulário de senha
+        },
+        {
             "slug": "kaggle",
             "name": "Kaggle Datasets",
             "description": "Importação de datasets históricos massivos.",

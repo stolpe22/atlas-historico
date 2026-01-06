@@ -24,21 +24,25 @@ def _background_etl_runner(task_id: str, slug: str, params: Dict[str, Any]):
         if not adapter:
             raise Exception(f"Adaptador para '{slug}' não implementado no backend.")
 
-        # 2. Busca Credenciais no Banco
+        # 2. Busca Credenciais no Banco (Tornamos opcional para o 'seed')
         integration = db.query(UserIntegration)\
             .join(IntegrationDefinition)\
             .filter(IntegrationDefinition.slug == slug)\
             .filter(UserIntegration.is_active == True)\
             .first()
             
-        if not integration:
+        # Validamos: se NÃO for seed e NÃO tiver integração, aí sim damos erro
+        if slug != "seed" and not integration:
             raise Exception(f"Nenhuma credencial ativa encontrada para '{slug}'. Configure em Settings.")
+
+        # Pegamos as credenciais se existirem, senão enviamos um dict vazio
+        credentials = integration.credentials if integration else {}
 
         # 3. Executa a Mágica Polimórfica
         result = adapter.run(
             db=db,
             task_id=task_id, 
-            credentials=integration.credentials, 
+            credentials=credentials, 
             params=params
         )
 

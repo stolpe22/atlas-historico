@@ -23,21 +23,13 @@ const ADAPTER_UI_CONFIG = {
     ]
   },
   seed: {
-    title: "Restaurar local (JSON)",
-    headerTitle: "Restaurar local (JSON)",
-    ctaLabel: "Restaurar agora",
+    title: "Restaurar Banco Local",
+    headerTitle: "Importação de JSON",
+    ctaLabel: "Iniciar Restauração",
     icon: "https://cdn-icons-png.flaticon.com/512/620/620851.png",
-    description: "Importa manual_events.json",
+    description: "Este processo lerá o arquivo data/manual_events.json no servidor e atualizará o mapa.",
     defaultParams: {},
-    inputs: [], // sem formulário; só presets + botão
-    presets: [
-      {
-        name: "manual_events.json",
-        value: "seed_local",
-        desc: "Restaura os dados pré-carregados.",
-        is_featured: true
-      }
-    ]
+    inputs: [], // Fica vazio para não pedir inputs do usuário
   }
 };
 
