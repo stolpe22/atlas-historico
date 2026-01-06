@@ -4,6 +4,7 @@ import zipfile
 import io
 import pandas as pd
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import text
 from app.models import GeonamesCity
 from app.services.task_manager import task_manager
@@ -80,32 +81,44 @@ def sync_geonames_data(db: Session, task_id: str):
         db.execute(text("TRUNCATE TABLE geonames_cities RESTART IDENTITY;"))
         db.commit()
 
-        log("💾 Inserindo dados no banco...")
+        log("💾 Inserindo dados no banco com Alta Performance...")
         
+        # Transformamos o DataFrame em uma lista de dicionários (o Pandas já faz isso bem)
         data_to_insert = df.to_dict(orient='records')
-        batch_size = 5000
+        batch_size = 10000 # Podemos aumentar o lote para 10k agora
         
         for i in range(0, total, batch_size):
             batch = data_to_insert[i : i + batch_size]
             
-            objects = [
-                GeonamesCity(
-                    geoname_id=row['geonameid'],
-                    name=str(row['name'])[:200],
-                    asciiname=str(row['asciiname'])[:200],
-                    latitude=row['latitude'],
-                    longitude=row['longitude'],
-                    country_code=str(row['country code'])[:2],
-                    country_name=str(row['country_name'])[:100], # <--- Campo Novo
-                    population=row['population']
-                ) for row in batch
-            ]
-            
-            db.bulk_save_objects(objects)
+            # Preparamos os dados para bater com as colunas do banco
+            stmt = insert(GeonamesCity).values([
+                {
+                    "geoname_id": row['geonameid'],
+                    "name": str(row['name'])[:200],
+                    "asciiname": str(row['asciiname'])[:200],
+                    "latitude": row['latitude'],
+                    "longitude": row['longitude'],
+                    "country_code": str(row['country code'])[:2],
+                    "country_name": str(row['country_name'])[:100],
+                    "population": row['population']
+                } for row in batch
+            ])
+
+            # ON CONFLICT: Se a cidade já existir (pelo geoname_id), atualiza a população
+            # Se não quiser atualizar nada, use: stmt = stmt.on_conflict_do_nothing(index_elements=['geoname_id'])
+            on_conflict_stmt = stmt.on_conflict_do_update(
+                index_elements=['geoname_id'],
+                set_={
+                    "population": stmt.excluded.population,
+                    "name": stmt.excluded.name
+                }
+            )
+
+            db.execute(on_conflict_stmt)
             db.commit()
             
             if (i + batch_size) % 20000 == 0:
-                log(f"📈 Progresso: {i + batch_size}/{total}...")
+                log(f"📈 Progresso: {min(i + batch_size, total)}/{total}...")
 
         log(f"🏁 Sucesso! {total} cidades disponíveis offline.")
         task_manager.set_status(task_id, "completed")

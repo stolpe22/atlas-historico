@@ -18,6 +18,7 @@ api.interceptors.response.use(
 
 export const eventsApi = {
   getAll: () => api.get('/events/all'),
+  getUniqueFilters: () => api.get('/events/filters'),
   getFiltered: (startYear, endYear, continent) => {
     let url = `/events?start_year=${startYear}&end_year=${endYear}`;
     if (continent && continent !== "Todos") url += `&continent=${continent}`;

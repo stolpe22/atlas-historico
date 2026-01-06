@@ -8,6 +8,7 @@ class WikidataExtraction(Base):
     Armazena logs de execução do robô para auditoria.
     """
     __tablename__ = "extractions"
+    
     __table_args__ = {"schema": "wikidata"}
 
     id = Column(Integer, primary_key=True, index=True)

@@ -61,7 +61,8 @@ const MainMap = ({
   return (
     <div className={mapContainerClasses}>
       
-      <MapContainer 
+      <MapContainer
+        preferCanvas={true}
         center={MAP_CONFIG.center} 
         zoom={MAP_CONFIG.zoom} 
         className={`h-full w-full outline-none ${isAddingMode ? 'cursor-crosshair' : ''}`}

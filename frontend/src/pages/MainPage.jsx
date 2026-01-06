@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { List, Plus, X, Map as MapIcon, MapPin } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { List, Plus, X, Map as MapIcon, MapPin, ArrowUpDown } from 'lucide-react';
 
 // Layout e UI
 import Header from '../components/layout/Header';
@@ -17,69 +17,125 @@ import ETLModal from '../components/modals/ETLModal';
 import { useETL } from '../context/ETLContext';
 import { useToast } from '../context/ToastContext';
 import { useEvents } from '../hooks/useEvents';
-import { CONTINENTS, DEFAULT_DATE_RANGE } from '../utils/constants';
+import { eventsApi } from '../services/api'; // Adicionado para buscar filtros
+import { DEFAULT_DATE_RANGE } from '../utils/constants';
 
 const MainPage = () => {
   const { addToast } = useToast();
   
-  // UI & Filtros
+  // --- Estados de Filtro e UI ---
   const [dateRange, setDateRange] = useState(DEFAULT_DATE_RANGE);
-  const [selectedContinent, setSelectedContinent] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('map'); // 'map' | 'table'
-  const [focusPosition, setFocusPosition] = useState(null);
+  const [viewMode, setViewMode] = useState('map'); 
   const [isAddingMode, setIsAddingMode] = useState(false);
+  const [focusPosition, setFocusPosition] = useState(null);
+
+  // Novos Filtros Dinâmicos
+  const [selectedContinent, setSelectedContinent] = useState('Todos');
+  const [selectedPeriod, setSelectedPeriod] = useState('Todos');
+  const [selectedSource, setSelectedSource] = useState('Todos');
+  const [availableFilters, setAvailableFilters] = useState({
+    continents: [],
+    periods: [],
+    sources: []
+  });
+
+  // Estado de Ordenação
+  const [sortConfig, setSortConfig] = useState({ key: 'year_start', direction: 'asc' });
 
   // Estados de Modais
   const [showEventModal, setShowEventModal] = useState(false);
-  const [modalMode, setModalMode] = useState('view'); // 'view' | 'create'
+  const [modalMode, setModalMode] = useState('view'); 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteData, setDeleteData] = useState(null);
-  const [notification, setNotification] = useState(null);
   const [etlSlug, setEtlSlug] = useState(null);
 
-  // Novo Evento (Formulário)
+  // Formulário de Novo Evento
   const [newEvent, setNewEvent] = useState({
-    name: '',
-    description: '',
-    content: '',
-    year_start: '',
-    latitude: 0,
-    longitude: 0,
-    continent: 'Outro',
+    name: '', description: '', content: '', year_start: '',
+    latitude: 0, longitude: 0, continent: 'Outro',
   });
 
-  // Dados (Integrado com useEvents e ETLContext)
-  const { mapEvents, refresh: refreshEvents, createEvent, deleteEvent, filterEvents } = useEvents(dateRange, selectedContinent);
+  // --- Carregamento de Dados ---
+  const { allEvents, mapEvents, refresh: refreshEvents, createEvent, deleteEvent } = useEvents(dateRange, selectedContinent);
   const { startETL, progressTrigger } = useETL();
 
-  // Atualiza o mapa quando novos dados chegam via ETL
+  // Busca filtros únicos do Banco (Distinct)
+  const loadFilters = useCallback(async () => {
+    try {
+      const res = await eventsApi.getUniqueFilters();
+      setAvailableFilters(res.data);
+    } catch (e) {
+      console.error("Erro ao carregar filtros dinâmicos", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFilters();
+  }, [loadFilters, progressTrigger]); // Recarrega filtros se o ETL terminar
+
   useEffect(() => {
     if (progressTrigger > 0) refreshEvents();
   }, [progressTrigger, refreshEvents]);
 
-  const filteredEvents = filterEvents(searchTerm);
+  // --- Lógica de Filtro e Ordenação (Computed) ---
+  const filteredAndSortedEvents = useMemo(() => {
+    const filtered = allEvents.filter(e => {
+      // Usamos (e.campo || "") para evitar o erro de toLowerCase() em valores nulos
+      const matchesSearch = (e.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesContinent = selectedContinent === "Todos" || (e.continent || "") === selectedContinent;
+      const matchesPeriod = selectedPeriod === "Todos" || (e.period || "") === selectedPeriod;
+      const matchesSource = selectedSource === "Todos" || (e.source || "") === selectedSource;
+      const matchesDate = e.year_start >= dateRange[0] && e.year_start <= dateRange[1];
+      
+      return matchesSearch && matchesContinent && matchesPeriod && matchesSource && matchesDate;
+    });
 
-  // --- Handlers de Ações ---
+    // Ordenação também blindada
+    return [...filtered].sort((a, b) => {
+      let aVal = a[sortConfig.key] ?? '';
+      let bVal = b[sortConfig.key] ?? '';
+      
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+
+      if (sortConfig.direction === 'asc') return aVal > bVal ? 1 : -1;
+      return aVal < bVal ? 1 : -1;
+    });
+  }, [allEvents, searchTerm, selectedContinent, selectedPeriod, selectedSource, dateRange, sortConfig]);
+
+  // Converte os eventos filtrados para GeoJSON para o componente MainMap
+  const geoJsonData = useMemo(() => ({
+    type: 'FeatureCollection',
+    features: filteredAndSortedEvents.map(e => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [e.longitude, e.latitude] },
+      properties: { ...e, year: e.year_start }
+    }))
+  }), [filteredAndSortedEvents]);
+
+  // --- Handlers ---
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   const handleAddStart = useCallback(() => {
-    if (!showEventModal && !isAddingMode) {
-      setNewEvent({
-        name: '', description: '', content: '', year_start: '',
-        latitude: 0, longitude: 0, continent: 'Outro',
-      });
-    }
-    if (viewMode === 'map') {
-      setIsAddingMode((prev) => !prev);
-    } else {
+    if (viewMode === 'map') setIsAddingMode(prev => !prev);
+    else {
+      setNewEvent({ name: '', description: '', content: '', year_start: '', latitude: 0, longitude: 0, continent: 'Outro' });
       setModalMode('create');
       setShowEventModal(true);
     }
-  }, [showEventModal, isAddingMode, viewMode]);
+  }, [viewMode]);
 
   const handleMapClick = useCallback((latlng) => {
     setIsAddingMode(false);
-    setNewEvent((prev) => ({ ...prev, latitude: latlng.lat, longitude: latlng.lng }));
+    setNewEvent(prev => ({ ...prev, latitude: latlng.lat, longitude: latlng.lng }));
     setModalMode('create');
     setShowEventModal(true);
   }, []);
@@ -88,95 +144,68 @@ const MainPage = () => {
     setSelectedEvent(evt);
     setModalMode('view');
     setShowEventModal(true);
-    if (evt.latitude && evt.longitude) {
-      setFocusPosition([evt.latitude, evt.longitude]);
-    }
+    if (evt.latitude && evt.longitude) setFocusPosition([evt.latitude, evt.longitude]);
   }, []);
 
-  const handleSaveEvent = useCallback(async () => {
+  const handleSaveEvent = async () => {
     if (!newEvent.name || !newEvent.year_start) {
       addToast({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
       return;
     }
     const result = await createEvent({ ...newEvent, year_start: parseInt(newEvent.year_start), source: 'manual' });
     if (result.success) {
-      addToast({ type: 'success', title: 'Salvo!', message: 'Evento registrado com sucesso.' });
+      addToast({ type: 'success', title: 'Salvo!', message: 'Evento registrado.' });
       setShowEventModal(false);
-    } else {
-      addToast({ type: 'error', title: 'Erro', message: 'Falha ao salvar registro.' });
+      loadFilters(); // Atualiza filtros se um novo continente/período foi criado
     }
-  }, [newEvent, createEvent, addToast]);
+  };
 
-  const handleRequestDelete = useCallback((evt) => {
-    if (evt.source !== 'manual') {
-      addToast({ type: 'warning', title: 'Bloqueado', message: 'Apenas eventos manuais podem ser excluídos.' });
-      return;
-    }
-    setDeleteData({ id: evt.id, name: evt.name });
-  }, [addToast]);
-
-  const handleConfirmDelete = useCallback(async () => {
+  const handleConfirmDelete = async () => {
     if (!deleteData) return;
     const result = await deleteEvent(deleteData.id);
     if (result.success) {
       addToast({ type: 'success', title: 'Apagado', message: 'Registro removido.' });
-    } else {
-      addToast({ type: 'error', title: 'Erro', message: 'Falha ao apagar.' });
+      setDeleteData(null);
     }
-    setDeleteData(null);
-  }, [deleteData, deleteEvent, addToast]);
+  };
 
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">
       <div className="flex-1 flex flex-col h-full relative min-w-0">
+        
+        {/* Header com Filtros Dinâmicos */}
         <Header
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           selectedContinent={selectedContinent}
           setSelectedContinent={setSelectedContinent}
+          selectedPeriod={selectedPeriod}
+          setSelectedPeriod={setSelectedPeriod}
+          selectedSource={selectedSource}
+          setSelectedSource={setSelectedSource}
+          availableFilters={availableFilters}
           dateRange={dateRange}
           setDateRange={setDateRange}
-          filteredCount={filteredEvents.length}
-          continents={CONTINENTS}
+          filteredCount={filteredAndSortedEvents.length}
         />
 
         <div className="flex-1 relative overflow-hidden">
-          {/* Alternador de Visão (Mapa/Lista) */}
+          {/* Alternador de Visão */}
           <div className="absolute top-4 w-full flex justify-center z-[400] pointer-events-none">
             <div className="bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 p-1 flex pointer-events-auto backdrop-blur-md bg-opacity-90">
-              <button
-                onClick={() => setViewMode('map')}
-                className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'map' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
+              <button onClick={() => setViewMode('map')} className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs transition-all ${viewMode === 'map' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                 <MapIcon size={14} /> Mapa
               </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
+              <button onClick={() => setViewMode('table')} className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs transition-all ${viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                 <List size={14} /> Lista
               </button>
             </div>
           </div>
 
-          {/* Overlay de Instrução para Adicionar Marker */}
-          {isAddingMode && viewMode === 'map' && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[400] pointer-events-none animate-in fade-in slide-in-from-top-4">
-              <div className="bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 animate-bounce">
-                <MapPin size={18} className="text-red-400" />
-                <span className="font-bold text-sm tracking-wide">Escolha um local no mapa</span>
-              </div>
-            </div>
-          )}
-
-          {/* Renderização Condicional de Visão */}
+          {/* Renderização condicional conforme viewMode */}
           {viewMode === 'map' ? (
             <MainMap
-              events={mapEvents}
+              events={geoJsonData}
               focusPosition={focusPosition}
               isAddingMode={isAddingMode}
               onMapClick={handleMapClick}
@@ -184,9 +213,11 @@ const MainPage = () => {
             />
           ) : (
             <ListView 
-              events={filteredEvents} 
+              events={filteredAndSortedEvents} 
               onViewDetails={handleEventClick} 
-              onDelete={handleRequestDelete} 
+              onDelete={(evt) => setDeleteData({ id: evt.id, name: evt.name })}
+              onSort={handleSort}
+              sortConfig={sortConfig}
             />
           )}
 
@@ -194,10 +225,8 @@ const MainPage = () => {
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[400]">
             <button
               onClick={handleAddStart}
-              className={`group flex items-center justify-center w-16 h-16 rounded-full shadow-2xl border-4 transition-all duration-300 hover:scale-110 ${
-                isAddingMode
-                  ? 'bg-red-500 border-red-200 dark:border-red-900 text-white rotate-90'
-                  : 'bg-blue-600 border-blue-200 dark:border-blue-900 text-white'
+              className={`flex items-center justify-center w-16 h-16 rounded-full shadow-2xl border-4 transition-all duration-300 hover:scale-110 ${
+                isAddingMode ? 'bg-red-500 border-red-200 text-white rotate-90' : 'bg-blue-600 border-blue-200 text-white'
               }`}
             >
               {isAddingMode ? <X size={32} /> : <Plus size={32} />}
@@ -207,7 +236,7 @@ const MainPage = () => {
       </div>
 
       <Sidebar
-        events={filteredEvents}
+        events={filteredAndSortedEvents}
         onEventClick={handleEventClick}
         onRunSeed={() => startETL('seed', {})} 
         onOpenPopulate={() => setEtlSlug('wikidata')} 
@@ -223,12 +252,8 @@ const MainPage = () => {
         newEvent={newEvent}
         setNewEvent={setNewEvent}
         onSave={handleSaveEvent}
-        onPickFromMap={() => {
-          setShowEventModal(false);
-          setViewMode('map');
-          setIsAddingMode(true);
-        }}
-        continents={CONTINENTS}
+        onPickFromMap={() => { setShowEventModal(false); setViewMode('map'); setIsAddingMode(true); }}
+        continents={availableFilters.continents}
       />
 
       <ConfirmModal
@@ -239,16 +264,8 @@ const MainPage = () => {
         message={`Tem certeza que deseja apagar "${deleteData?.name}"?`}
       />
 
-      <ETLModal
-        isOpen={!!etlSlug}
-        onClose={() => setEtlSlug(null)}
-        integrationSlug={etlSlug}
-      />
-
-      <NotificationModal 
-        notification={notification} 
-        onClose={() => setNotification(null)} 
-      />
+      <ETLModal isOpen={!!etlSlug} onClose={() => setEtlSlug(null)} integrationSlug={etlSlug} />
+      <NotificationModal notification={null} onClose={() => {}} />
     </div>
   );
 };

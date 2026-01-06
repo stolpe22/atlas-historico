@@ -1,43 +1,80 @@
 import React from 'react';
-import { List, Trash2 } from 'lucide-react';
+import { List, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import SourceBadge from '../common/SourceBadge';
 import { formatYearRange } from '../../utils/formatters';
 
-const ListView = ({ events, onViewDetails, onDelete }) => {
+const ListView = ({ events, onViewDetails, onDelete, onSort, sortConfig }) => {
+  
+  // Helper para renderizar o ícone de ordenação
+  const renderSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown size={14} className="opacity-30 group-hover:opacity-100 transition-opacity" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp size={14} className="text-blue-500" /> 
+      : <ArrowDown size={14} className="text-blue-500" />;
+  };
+
+  const thClass = "p-4 border-b border-slate-200 dark:border-slate-700 cursor-pointer group hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors";
+
   return (
-    // CORREÇÃO AQUI: bg-gray-100 para tema claro, dark:bg-slate-900 para escuro
-    <div className="h-full w-full overflow-y-auto bg-gray-100 dark:bg-slate-900 p-8 transition-colors duration-300">
+    <div className="h-full w-full overflow-y-auto bg-slate-50 dark:bg-slate-900 p-8 transition-colors duration-300">
       <div className="max-w-6xl mx-auto">
         
-        {/* Title */}
+        {/* Header da View */}
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-            <List className="text-brand-600 dark:text-brand-400" size={24} /> 
+            <List className="text-blue-600 dark:text-blue-400" size={24} /> 
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white leading-none">
               Catálogo Histórico
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Gerencie todos os eventos registrados
+              Gerencie e ordene todos os eventos registrados
             </p>
           </div>
           
-          <span className="ml-auto bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-sm font-bold px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800">
-            {events.length}
-          </span>
+          <div className="ml-auto flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-full border border-blue-100 dark:border-blue-800">
+             <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Total:</span>
+             <span className="text-lg font-black text-blue-700 dark:text-blue-300 leading-none">
+                {events.length}
+             </span>
+          </div>
         </div>
 
-        {/* Table Container */}
+        {/* Tabela de Eventos */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold tracking-wider">
               <tr>
-                <th className="p-4 border-b border-slate-200 dark:border-slate-700 w-32">Ano</th>
-                <th className="p-4 border-b border-slate-200 dark:border-slate-700">Evento</th>
-                <th className="p-4 border-b border-slate-200 dark:border-slate-700 w-48">Período</th>
-                <th className="p-4 border-b border-slate-200 dark:border-slate-700 w-40">Continente</th>
-                <th className="p-4 border-b border-slate-200 dark:border-slate-700 w-32 text-right">Ação</th>
+                <th onClick={() => onSort('year_start')} className={`${thClass} w-32`}>
+                  <div className="flex items-center gap-2">
+                    Ano {renderSortIcon('year_start')}
+                  </div>
+                </th>
+                
+                <th onClick={() => onSort('name')} className={thClass}>
+                  <div className="flex items-center gap-2">
+                    Evento {renderSortIcon('name')}
+                  </div>
+                </th>
+                
+                <th onClick={() => onSort('period')} className={`${thClass} w-48`}>
+                  <div className="flex items-center gap-2">
+                    Período {renderSortIcon('period')}
+                  </div>
+                </th>
+                
+                <th onClick={() => onSort('continent')} className={`${thClass} w-40`}>
+                  <div className="flex items-center gap-2">
+                    Continente {renderSortIcon('continent')}
+                  </div>
+                </th>
+                
+                <th className="p-4 border-b border-slate-200 dark:border-slate-700 w-32 text-right">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -46,38 +83,43 @@ const ListView = ({ events, onViewDetails, onDelete }) => {
                   key={evt.id} 
                   className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition duration-150"
                 >
-                  <td className="p-4 font-mono text-brand-600 dark:text-brand-400 font-bold whitespace-nowrap">
+                  {/* Coluna: Ano */}
+                  <td className="p-4 font-mono text-blue-600 dark:text-blue-400 font-bold whitespace-nowrap">
                     {formatYearRange(evt.year_start, evt.year_end)}
                   </td>
                   
+                  {/* Coluna: Nome e Fonte */}
                   <td className="p-4 font-medium text-slate-700 dark:text-slate-200">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-base">{evt.name}</span>
+                      <span className="text-base font-bold">{evt.name}</span>
                       <div className="w-fit">
                         <SourceBadge source={evt.source} />
                       </div>
                     </div>
                   </td>
                   
+                  {/* Coluna: Período */}
                   <td className="p-4 text-sm text-slate-500 dark:text-slate-400">
-                    <span className="inline-block bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded text-xs">
+                    <span className="inline-block bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded text-xs font-medium">
                       {evt.period}
                     </span>
                   </td>
                   
+                  {/* Coluna: Continente */}
                   <td className="p-4">
-                    <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded text-xs font-bold uppercase tracking-wide">
-                      {evt.continent}
+                    <span className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-600">
+                      {evt.continent || 'N/A'}
                     </span>
                   </td>
 
+                  {/* Coluna: Botões de Ação */}
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button 
                         onClick={() => onViewDetails(evt)} 
-                        className="text-xs font-bold text-brand-600 hover:text-brand-700 dark:text-brand-400 hover:underline px-2 py-1"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline px-2 py-1"
                       >
-                        Ver detalhes
+                        Detalhes
                       </button>
 
                       {evt.source === 'manual' && (
@@ -86,7 +128,7 @@ const ListView = ({ events, onViewDetails, onDelete }) => {
                             e.stopPropagation(); 
                             onDelete(evt); 
                           }} 
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all"
                           title="Apagar Registro"
                         >
                           <Trash2 size={16} />
@@ -97,10 +139,15 @@ const ListView = ({ events, onViewDetails, onDelete }) => {
                 </tr>
               ))}
               
+              {/* Empty State */}
               {events.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="p-12 text-center text-slate-400">
-                    Nenhum evento encontrado com os filtros atuais.
+                  <td colSpan="5" className="p-20 text-center">
+                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                      <List size={48} className="opacity-20 mb-2" />
+                      <p className="font-medium">Nenhum evento encontrado.</p>
+                      <p className="text-xs">Tente ajustar seus filtros ou busca.</p>
+                    </div>
                   </td>
                 </tr>
               )}
