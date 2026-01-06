@@ -20,11 +20,22 @@ const SettingsPage = () => {
   
   // Estados de UI/Modais
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   const [selectedInteg, setSelectedInteg] = useState(null);
   const [helpSlug, setHelpSlug] = useState(null);
   const [deleteData, setDeleteData] = useState(null);
-  const [taskId, setTaskId] = useState(null);
+
+  const GEONAMES_TASK_KEY = 'atlas_geonames_task_id';
+
+  const [taskId, setTaskId] = useState(() => localStorage.getItem(GEONAMES_TASK_KEY));
+  const [syncing, setSyncing] = useState(() => !!localStorage.getItem(GEONAMES_TASK_KEY));
+  
+  useEffect(() => {
+    if (taskId) {
+      localStorage.setItem(GEONAMES_TASK_KEY, taskId);
+    } else {
+      localStorage.removeItem(GEONAMES_TASK_KEY);
+    }
+  }, [taskId]);
 
   useEffect(() => { loadData(); }, []);
 
@@ -36,15 +47,25 @@ const SettingsPage = () => {
         try {
           const res = await settingsApi.getTaskStatus(taskId);
           if (res.data.logs) setSyncLogs(res.data.logs);
+
           if (res.data.status === 'completed') {
-            setSyncing(false); setTaskId(null);
+            setSyncing(false);
+            setTaskId(null); // Isso vai disparar o efeito acima e remover do localStorage
             addToast({ type: 'success', title: 'Sucesso', message: 'Geonames atualizado!' });
             loadData();
             clearInterval(interval);
           } else if (['error', 'cancelled'].includes(res.data.status)) {
-            setSyncing(false); setTaskId(null); clearInterval(interval);
+            setSyncing(false);
+            setTaskId(null);
+            clearInterval(interval);
           }
-        } catch (error) { console.error(error); }
+        } catch (error) {
+          // Se a task sumiu do back (ex: reiniciou o server), limpa o front
+          if (error.response?.status === 404) {
+             setSyncing(false);
+             setTaskId(null);
+          }
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
