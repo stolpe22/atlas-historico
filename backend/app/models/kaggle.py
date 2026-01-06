@@ -22,12 +22,3 @@ class KaggleStaging(Base):
 
     def __repr__(self):
         return f"<KaggleStaging {self.id} - {self.kaggle_id}>"
-
-# Classes antigas mantidas para compatibilidade (opcional)
-class KaggleConfig(Base):
-    __tablename__ = "kaggle_configs_deprecated"
-    id = Column(Integer, primary_key=True)
-
-class KaggleDataset(Base):
-    __tablename__ = "kaggle_datasets_deprecated"
-    id = Column(Integer, primary_key=True)
