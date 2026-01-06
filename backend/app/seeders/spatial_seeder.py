@@ -71,29 +71,31 @@ def seed_continents(db: Session):
 
 
 def detect_continent_from_point(db: Session, lat: float, lon: float):
-    """
-    Detecta o continente usando um Buffer de segurança de 10km 
-    para capturar pontos ligeiramente fora da costa.
-    """
     if lat == 0 and lon == 0:
         return "Desconhecido"
 
-    # 0.1 graus é aproximadamente 11km na linha do equador. 
-    # É um valor seguro para capturar eventos costeiros.
+    # Forçamos o uso de float para os parâmetros e garantimos o Schema
     query = text("""
         SELECT name FROM settings.continents_shapes
         WHERE ST_Intersects(
             geom, 
-            ST_Buffer(ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography, 10000)::geometry
+            ST_Buffer(ST_SetSRID(ST_Point(CAST(:lon AS FLOAT), CAST(:lat AS FLOAT)), 4326)::geography, 100000)::geometry
         )
-        ORDER BY ST_Distance(geom, ST_SetSRID(ST_Point(:lon, :lat), 4326)) ASC
+        ORDER BY geom <-> ST_SetSRID(ST_Point(CAST(:lon AS FLOAT), CAST(:lat AS FLOAT)), 4326)
         LIMIT 1
     """)
     
     try:
-        # Usamos geography para que o buffer de 10.000 (metros) seja preciso em qualquer lugar do globo
-        result = db.execute(query, {"lon": lon, "lat": lat}).fetchone()
-        return result[0] if result else "Outro"
+        # Importante: usar db.execute(query, {...}).mappings().first() ou fetchone()
+        result = db.execute(query, {"lon": float(lon), "lat": float(lat)}).fetchone()
+        
+        if result:
+            return result[0]
+        
+        # Se não achou em 100km, vamos logar para saber qual coordenada está falhando
+        print(f"❓ Ponto sem continente próximo: Lat {lat}, Lon {lon}")
+        return "Desconhecido"
+        
     except Exception as e:
-        print(f"⚠️ Erro na detecção espacial com Buffer: {e}")
+        print(f"❌ Erro PostGIS no Python: {e}")
         return "Desconhecido"

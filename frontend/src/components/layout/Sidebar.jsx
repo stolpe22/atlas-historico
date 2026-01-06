@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Database, Play, ChevronRight, Calendar, FileJson, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Play, ChevronRight, Calendar, FileJson, Download, ChevronDown, ChevronUp } from 'lucide-react';
 
 const Sidebar = ({ 
   events = [], 
@@ -88,17 +88,6 @@ const Sidebar = ({
               <div>
                 <span className="font-medium block">Restaurar Local</span>
                 <span className="text-[10px] opacity-70">manual_events.json</span>
-              </div>
-            </button>
-
-            <button 
-              onClick={onOpenPopulate}
-              className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition text-sm text-left"
-            >
-              <Database size={16} className="text-purple-500" />
-              <div>
-                <span className="font-medium block">Gerador (Wikidata)</span>
-                <span className="text-[10px] opacity-70">Extração online</span>
               </div>
             </button>
             
