@@ -1,131 +1,213 @@
-# 🌍 Atlas Histórico Interativo
+# 🌍 Atlas Histórico
 
-Uma plataforma full-stack moderna para visualização e gestão de eventos históricos geolocalizados. O sistema combina dados manuais com **ingestão inteligente via Wikidata e Wikipédia**, oferecendo resumos ricos, filtragem temporal e análise geográfica.
+O **Atlas Histórico** é uma plataforma geográfica interativa de código aberto projetada para consolidar, visualizar e gerenciar cronologias históricas mundiais. Combinando o poder de bancos de dados geoespaciais com uma interface dinâmica, o projeto permite que usuários e historiadores explorem batalhas, tratados, descobertas e eventos através do tempo e do espaço.
 
-![Preview](./preview.png)
-<<<<<<< HEAD
+## 📖 Índice
 
-## ✨ Principais Funcionalidades
+- [Visão Geral e Propósito](#-visão-geral-e-propósito)
+- [Arquitetura de Software](#-arquitetura-de-software)
+  - [Frontend: Data-Driven Design](#frontend-data-driven-design)
+  - [Backend: Motor de ETL Unificado](#backend-motor-de-etl-unificado)
+- [Stack Tecnológica](#-stack-tecnológica)
+- [Instalação e Configuração](#-instalação-e-configuração)
+  - [Via Docker (Recomendado)](#via-docker-recomendado)
+  - [Execução Manual (Desenvolvimento)](#execução-manual-desenvolvimento)
+- [Guia do Desenvolvedor: Expandindo o Projeto](#-guia-do-desenvolvedor-expandindo-o-projeto)
+  - [Adicionando Novos Modais de Importação](#adicionando-novos-modais-de-importação)
+  - [Criando um Novo Adaptador ETL](#criando-um-novo-adaptador-etl)
+- [Funcionalidades Principais](#-funcionalidades-principais)
+- [Estrutura de Pastas](#-estrutura-de-pastas)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
 
-- **🗺️ Visualização Híbrida:** Alterne fluidamente entre **Mapa Interativo** (com clusterização) e **Lista Tabular** (com ações de gestão).
-- **🧠 População Inteligente (ETL):**
-  - **Modo Turbo:** Busca agressiva por Guerras, Tratados, Revoluções e marcos históricos no Wikidata.
-  - **Conteúdo Rico:** O robô acessa a API da Wikipédia para trazer resumos didáticos em português automaticamente.
-  - **Modo Varredura:** Scan geográfico detalhado para encontrar eventos obscuros.
-- **✍️ Gestão de Dados:**
-  - Cadastro manual de eventos com **seletor de coordenadas no mapa**.
-  - Proteção de dados: Eventos importados são protegidos, apenas eventos manuais podem ser excluídos.
-- **🎨 UX Moderna:**
-  - **Dark Mode** automático e manual.
-  - Modais de confirmação e notificações (Toast) estilizados.
-  - Filtros dinâmicos por Continente, Ano (Slider) e Texto.
-=======
->>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
+## 🎯 Visão Geral e Propósito
 
-## 🚀 Tecnologias
+Muitos dados históricos estão dispersos em arquivos CSV, bancos de dados legados ou APIs complexas como a do Wikidata. O Atlas Histórico atua como um **Agregador Geográfico**, oferecendo uma interface unificada onde esses dados são normalizados e projetados em um mapa global, permitindo filtros por período e continente.
+
+## 🏗️ Arquitetura de Software
+
+### Frontend: Data-Driven Design
+
+A interface não é apenas um conjunto de páginas, mas um sistema que reage a metadados. O coração dessa abordagem está no `ETLModal.jsx`.
+
+Diferenciais:
+- **Configuração via Constantes:** Os formulários de importação são gerados dinamicamente. Se você precisar de um novo campo de texto ou senha para uma nova API, você não altera o JSX, apenas a constante `ADAPTER_UI_CONFIG`.
+- **Gerenciamento de Estado Persistente:** Através do `ETLContext`, o frontend mantém o rastreamento de tarefas de background. O uso do `localStorage` garante que, se a página for fechada durante uma importação de 50.000 registros do Kaggle, o progresso reapareça instantaneamente ao abrir o site novamente.
+- **Visualização de Alta Performance:** Implementação de Markers Clustering com carregamento fragmentado, garantindo 60fps mesmo com milhares de pontos na tela.
+
+### Backend: Motor de ETL Unificado
+
+O backend utiliza o **Registry Pattern** para gerenciar integrações. Em vez de criar dezenas de endpoints como `/import-kaggle` ou `/import-json`, existe apenas um endpoint mestre: `/etl/run`.
+
+Fluxo de uma Tarefa ETL:
+1. O cliente envia um slug (ex: `kaggle`) e `params`.
+2. O Registry localiza a classe correspondente que herda de `BaseEtlAdapter`.
+3. O `TaskManager` inicia a tarefa em uma thread de background (`FastAPI BackgroundTasks`).
+4. O `TaskManager` gerencia logs em memória e estados de interrupção (Graceful Shutdown).
+
+## 🛠️ Stack Tecnológica
 
 ### Frontend
-- **React 18 + Vite** (Performance e modularidade)
-- **Leaflet & React-Leaflet** (Mapas e Clusterização)
-- **Tailwind CSS** (Estilização moderna e Responsiva)
-- **Lucide React** (Ícones vetoriais)
+- Framework: React 18 (Vite)
+- Estilização: Tailwind CSS (com suporte a Dark Mode nativo)
+- Mapas: Leaflet.js & React-Leaflet
+- Componentes de UI: Lucide React (Ícones), `rc-slider` (Linha do tempo)
 
 ### Backend
-- **Python 3.10+ & FastAPI** (Alta performance assíncrona)
-- **SQLAlchemy & Pydantic** (ORM e Validação de Dados)
-- **BeautifulSoup/Requests** (Web Scraping e Integração APIs Externas)
+- Framework: FastAPI (Python 3.10+)
+- Gerenciador de Pacotes: UV (Substituto moderno e 10x mais rápido que o Pip)
+- ORM: SQLAlchemy 2.0
+- Banco de Dados: PostgreSQL 16 com extensão PostGIS
 
-### Banco de Dados & Infra
-- **PostgreSQL + PostGIS** (Armazenamento de dados espaciais)
-- **Docker & Docker Compose** (Containerização completa)
+## 📦 Instalação e Configuração
 
----
+### Via Docker (Recomendado)
 
-## 🛠️ Como Rodar (Quickstart)
+A forma mais rápida de subir o ambiente completo (Front, Back, DB e Tradutor).
 
-Pré-requisitos: **Docker** e **Docker Compose** instalados.
-
-1. **Clone o repositório:**
+1. Certifique-se de ter o Docker e Docker Compose instalados.
+2. Use o script de conveniência:
    ```bash
-<<<<<<< HEAD
-   git clone https://github.com/SEU_USUARIO/atlas-historico.git
-=======
-   git clone [https://github.com/stolpe22/atlas-historico.git](https://github.com/stolpe22/atlas-historico.git)
->>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
-   cd atlas-historico
+   chmod +x run.sh
+   ./run.sh
+   ```
+3. Acesse as URLs:
+   - Frontend: http://localhost:3000
+   - Backend (Docs): http://localhost:8000/docs
+   - Tradução: http://localhost:5000
+
+### Execução Manual (Desenvolvimento)
+
+Caso deseje rodar os serviços fora do Docker para depuração:
+
+1. Banco de Dados
+
+   Você precisará de um PostgreSQL com PostGIS ativo.
+   ```sql
+   CREATE DATABASE history_atlas;
+   CREATE EXTENSION postgis;
    ```
 
-2. **Suba a aplicação:**
+2. Backend
+
+   Navegue até a pasta `/backend`:
    ```bash
-   docker-compose up --build
+   # Instale o UV se não tiver
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # Sincronize dependências e ative venv
+   uv sync
+   source .venv/bin/activate
+
+   # Rode as migrações/tabelas (o app cria ao iniciar)
+   uvicorn app.main:app --reload --port 8000
    ```
-   *O processo de build pode levar alguns minutos na primeira vez.*
 
-3. **Acesse:**
-   - **Frontend (Aplicação):** http://localhost:3000
-   - **Backend (Docs API):** http://localhost:8000/docs
+3. Frontend
 
-## 💾 Populando o Banco de Dados
+   Navegue até a pasta `/frontend`:
+   ```bash
+   npm install
+   npm run dev -- --port 3000
+   ```
+   > Nota: Certifique-se de configurar a variável `VITE_API_URL` no seu ambiente.
 
-Esqueça os comandos de terminal! O projeto agora possui um Painel de Controle integrado na interface.
+## 🧭 Guia do Desenvolvedor: Expandindo o Projeto
 
-1. Abra a aplicação em http://localhost:3000.
-2. No menu lateral direito (ícone de engrenagem ⚙️), você encontrará as opções de ingestão:
+### Adicionando Novos Modais de Importação
 
-### ⚡ Modo Turbo (Recomendado)
-Faz uma varredura nas categorias principais (Guerras, Revoluções, Descobertas) do Wikidata e busca automaticamente os resumos na Wikipédia.
-- **Tempo estimado:** 2 a 5 minutos.
-- **Resultado:** ~3.000 eventos principais com descrições ricas.
+Para adicionar uma nova fonte de dados no Frontend, edite `projeto/components/modals/ETLModal.jsx` e adicione à constante `ADAPTER_UI_CONFIG`.
 
-### 🔍 Modo Varredura
-Realiza uma busca geográfica recursiva por coordenadas e períodos de tempo. Ideal para encontrar eventos menores que não possuem categorias bem definidas.
-- **Tempo estimado:** 10+ minutos (processo lento e profundo).
-- **Nota:** O sistema remove duplicatas automaticamente ao final de cada processo.
-
-## 📂 Estrutura do Projeto
-
+Exemplo de adição de um campo de input:
+```javascript
+const ADAPTER_UI_CONFIG = {
+  // ... existentes
+  minha_api_nova: {
+    title: "Minha API",
+    headerTitle: "Configurar Acesso",
+    ctaLabel: "Sincronizar Agora",
+    icon: "https://site.com/logo.svg",
+    description: "Importa eventos de uma API privada.",
+    defaultParams: { api_token: "", categoria: "Guerras" },
+    inputs: [
+      { 
+        key: "api_token", 
+        label: "Chave de Acesso", 
+        type: "password", 
+        placeholder: "Insira seu token..." 
+      },
+      { 
+        key: "categoria", 
+        label: "Categoria de Eventos", 
+        type: "text", 
+        placeholder: "Ex: Científicos" 
+      }
+    ]
+  }
+};
 ```
-/
-├── backend/            # API FastAPI
+
+### Criando um Novo Adaptador ETL
+
+1. Crie um novo arquivo em `app/etl/nome_da_api/adapter.py`.
+2. Herde de `BaseEtlAdapter`.
+3. Registre no `app/etl/registry.py`.
+
+Exemplo:
+```python
+# app/etl/exemplo/adapter.py
+from ..base import BaseEtlAdapter
+from ...services.task_manager import task_manager
+
+class ExemploAdapter(BaseEtlAdapter):
+    def run(self, db, task_id, credentials, params):
+        task_manager.log(task_id, "Iniciando processo...")
+        # Lógica de extração aqui
+        return "Sucesso"
+```
+
+## 🗺️ Funcionalidades Principais
+
+- Filtro Temporal Dinâmico: Explore desde a Pré-História até a Idade Contemporânea usando o Slider de datas.
+- Importação Kaggle: Conecte sua conta do Kaggle e importe datasets massivos de CSV para o banco PostGIS.
+- Restauração Local (Seed): Recupere rapidamente os dados básicos do projeto a partir do `manual_events.json`.
+- Geonames Offline: Sincronize milhares de cidades para o seu banco local para garantir geolocalização rápida.
+- Tradução EN/PT: Tradução de conteúdos históricos em tempo real via LibreTranslate.
+
+## 📂 Estrutura de Pastas
+
+```plaintext
+atlas-historico/
+├── backend/
 │   ├── app/
-│   │   ├── main.py           # Endpoints e Lógica de Negócio
-│   │   ├── models.py         # Schemas do Banco (com is_manual flag)
-│   │   ├── populate_final.py # Scripts de ETL (Wikidata/Wikipedia)
-│   │   └── database.py       # Conexão Postgres
-│   └── Dockerfile
-│
-├── frontend/           # SPA React
+│   │   ├── etl/            # Adaptadores e lógica de carga
+│   │   │   ├── kaggle/     # Lógica do Kaggle (Extractor/Processor)
+│   │   │   └── seed/       # Lógica de restauração local
+│   │   ├── models/         # Modelos SQLAlchemy (Eventos, Geonames)
+│   │   ├── routes/         # Endpoints FastAPI
+│   │   └── services/       # TaskManager, EventService
+│   └── Dockerfile          # Build com gerenciador UV
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx           # Componente Principal e Roteamento
-│   │   ├── components/       # Modais, Botões e Controles de Mapa
-│   │   └── main.jsx
-│   └── Dockerfile
-│
-├── db_init/            # Scripts SQL
-│   └── init.sql        # Dump inicial (estrutura + dados base)
-│
-└── docker-compose.yaml # Orquestração
+│   │   ├── components/     # Componentes React (Map, Modals, Layout)
+│   │   ├── context/        # ETLContext, ToastContext
+│   │   ├── hooks/          # useEvents, useTheme
+│   │   └── pages/          # MainPage, SettingsPage
+│   └── Dockerfile          # Build multi-stage Nginx
+├── docker-compose.yaml     # Orquestrador de serviços
+└── run.sh                  # Script de bootstrap (Build + Up)
 ```
 
-## 🛡️ Decisões de Arquitetura
+## 🔐 Variáveis de Ambiente
 
-- **Separação de Responsabilidades:** O Backend cuida da integridade dos dados e regras de negócio (cálculo automático de Período Histórico), enquanto o Frontend foca puramente na experiência do usuário.
-- **Persistência Híbrida:** Utilizamos um arquivo `init.sql` para garantir que o projeto "nasça" pronto, mas permitimos expansão dinâmica via API.
-- **Segurança de Dados:** A flag `is_manual` no banco impede que usuários apaguem acidentalmente dados históricos validados (Wikidata), permitindo gestão apenas dos registros criados pelo usuário.
+O backend utiliza o arquivo `.env` (ou variáveis injetadas via Docker Compose):
 
-## 🤝 Contribuição
-
-<<<<<<< HEAD
-Contribuições são bem-vindas! Se você tiver ideias para novas fontes de dados ou melhorias na visualização temporal:
-
-1. Faça um Fork.
-2. Crie uma Branch (`git checkout -b feature/nova-feature`).
-3. Commit suas mudanças.
-4. Abra um Pull Request.
+| Variável           | Descrição                         | Padrão                     |
+|--------------------|-----------------------------------|----------------------------|
+| `DB_HOST`          | Host do banco de dados            | `db` (docker) ou `localhost` |
+| `DB_NAME`          | Nome do banco                     | `history_atlas`            |
+| `WIKIDATA_TIMEOUT` | Timeout para queries SPARQL       | `120`                      |
+| `QUERY_LIMIT`      | Limite de eventos por extração    | `500`                      |
 
 ---
 
-Desenvolvido com 💜 e História.
-=======
-Sinta-se livre para abrir issues ou pull requests melhorando a visualização ou adicionando novas fontes de dados históricos!
->>>>>>> 0fb3a81fd3d1fd8fbad73d4a97e78094d920bb60
+Atlas Histórico - @stolpe22
