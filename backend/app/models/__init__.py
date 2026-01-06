@@ -21,6 +21,7 @@ from .kaggle import KaggleStaging
 from .wikidata import WikidataExtraction
 from .geonames import GeonamesCity
 from .integrations import IntegrationDefinition, UserIntegration
+from .spatial import ContinentShape
 
 __all__ = [
     "HistoricalEvent", 
@@ -29,5 +30,6 @@ __all__ = [
     "WikidataExtraction",
     "GeonamesCity",
     "IntegrationDefinition",
-    "UserIntegration"
+    "UserIntegration",
+    "ContinentShape"
 ]

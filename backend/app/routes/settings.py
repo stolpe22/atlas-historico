@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..database import get_db, SessionLocal
 from ..models import IntegrationDefinition, UserIntegration, GeonamesCity
 from ..services.task_manager import task_manager
-from ..etl.integrations.seeder import seed_integrations
+from ..seeders.integrations import seed_integrations
 from ..etl.geonames.loader import sync_geonames_data
 
 router = APIRouter(prefix="/settings", tags=["settings"])
