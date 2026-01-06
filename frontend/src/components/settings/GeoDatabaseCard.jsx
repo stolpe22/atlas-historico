@@ -28,7 +28,7 @@ const GeoDatabaseCard = ({ stats, syncing, logs, onSync }) => {
               ${syncing ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 shadow-green-500/30 active:scale-95'}`}
           >
             <RefreshCw className={syncing ? "animate-spin" : ""} size={20} />
-            {syncing ? "Sincronizando..." : "Sincronizar Base"}
+            {syncing ? "Sincronizando..." : "Sincronizar Base - geonames.org"}
           </button>
         </div>
 

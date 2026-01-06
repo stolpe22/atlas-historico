@@ -21,7 +21,7 @@ export const DEFAULT_DATE_RANGE = [-3000, 2025];
 export const MAP_CONFIG = {
   center: [20, 0],
   zoom: 2,
-  flyToZoom: 6,
+  flyToZoom: 18,
   clusterRadius: 60
 };
 

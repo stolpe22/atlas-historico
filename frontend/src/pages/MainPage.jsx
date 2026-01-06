@@ -1,32 +1,44 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { List, Plus, X, Map as MapIcon, MapPin } from 'lucide-react';
 
+// Layout e UI
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import MainMap from '../components/map/MainMap';
 import ListView from '../components/list/ListView';
+
+// Modais Unificados
 import EventModal from '../components/modals/EventModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import NotificationModal from '../components/modals/NotificationModal';
 import ETLModal from '../components/modals/ETLModal';
 
+// Hooks e Contexto
 import { useETL } from '../context/ETLContext';
+import { useToast } from '../context/ToastContext';
 import { useEvents } from '../hooks/useEvents';
 import { CONTINENTS, DEFAULT_DATE_RANGE } from '../utils/constants';
 
 const MainPage = () => {
-  // UI & filtros
+  const { addToast } = useToast();
+  
+  // UI & Filtros
   const [dateRange, setDateRange] = useState(DEFAULT_DATE_RANGE);
   const [selectedContinent, setSelectedContinent] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('map');
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'table'
   const [focusPosition, setFocusPosition] = useState(null);
   const [isAddingMode, setIsAddingMode] = useState(false);
+
+  // Estados de Modais
   const [showEventModal, setShowEventModal] = useState(false);
-  const [modalMode, setModalMode] = useState('view');
+  const [modalMode, setModalMode] = useState('view'); // 'view' | 'create'
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [deleteData, setDeleteData] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [etlSlug, setEtlSlug] = useState(null);
+
+  // Novo Evento (Formulário)
   const [newEvent, setNewEvent] = useState({
     name: '',
     description: '',
@@ -36,41 +48,30 @@ const MainPage = () => {
     longitude: 0,
     continent: 'Outro',
   });
-  const [etlSlug, setEtlSlug] = useState(null);
 
-  // Dados
+  // Dados (Integrado com useEvents e ETLContext)
   const { mapEvents, refresh: refreshEvents, createEvent, deleteEvent, filterEvents } = useEvents(dateRange, selectedContinent);
   const { startETL, progressTrigger } = useETL();
 
+  // Atualiza o mapa quando novos dados chegam via ETL
   useEffect(() => {
     if (progressTrigger > 0) refreshEvents();
   }, [progressTrigger, refreshEvents]);
 
   const filteredEvents = filterEvents(searchTerm);
 
-  // Handlers
-
-  // Função para abrir o modal de extração (Wikidata) usando a interface de ETL
-  const handleOpenWikidata = () => {
-    // Se o seu backend já aceita 'wikidata' no /etl/run:
-    setEtlSlug('wikidata'); 
-  };
-
+  // --- Handlers de Ações ---
 
   const handleAddStart = useCallback(() => {
     if (!showEventModal && !isAddingMode) {
       setNewEvent({
-        name: '',
-        description: '',
-        content: '',
-        year_start: '',
-        latitude: 0,
-        longitude: 0,
-        continent: 'Outro',
+        name: '', description: '', content: '', year_start: '',
+        latitude: 0, longitude: 0, continent: 'Outro',
       });
     }
-    if (viewMode === 'map') setIsAddingMode((prev) => !prev);
-    else {
+    if (viewMode === 'map') {
+      setIsAddingMode((prev) => !prev);
+    } else {
       setModalMode('create');
       setShowEventModal(true);
     }
@@ -87,38 +88,43 @@ const MainPage = () => {
     setSelectedEvent(evt);
     setModalMode('view');
     setShowEventModal(true);
-    setFocusPosition([evt.latitude, evt.longitude]);
+    if (evt.latitude && evt.longitude) {
+      setFocusPosition([evt.latitude, evt.longitude]);
+    }
   }, []);
 
   const handleSaveEvent = useCallback(async () => {
     if (!newEvent.name || !newEvent.year_start) {
-      setNotification({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
+      addToast({ type: 'warning', title: 'Atenção', message: 'Preencha nome e ano.' });
       return;
     }
     const result = await createEvent({ ...newEvent, year_start: parseInt(newEvent.year_start), source: 'manual' });
     if (result.success) {
-      setNotification({ type: 'success', title: 'Salvo!', message: 'Evento registrado.' });
+      addToast({ type: 'success', title: 'Salvo!', message: 'Evento registrado com sucesso.' });
       setShowEventModal(false);
     } else {
-      setNotification({ type: 'error', title: 'Erro', message: 'Falha ao salvar.' });
+      addToast({ type: 'error', title: 'Erro', message: 'Falha ao salvar registro.' });
     }
-  }, [newEvent, createEvent]);
+  }, [newEvent, createEvent, addToast]);
 
   const handleRequestDelete = useCallback((evt) => {
     if (evt.source !== 'manual') {
-      setNotification({ type: 'warning', title: 'Bloqueado', message: 'Apenas eventos manuais podem ser excluídos.' });
+      addToast({ type: 'warning', title: 'Bloqueado', message: 'Apenas eventos manuais podem ser excluídos.' });
       return;
     }
     setDeleteData({ id: evt.id, name: evt.name });
-  }, []);
+  }, [addToast]);
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteData) return;
     const result = await deleteEvent(deleteData.id);
-    if (result.success) setNotification({ type: 'success', title: 'Apagado', message: 'Removido.' });
-    else setNotification({ type: 'error', title: 'Erro', message: 'Falha ao apagar.' });
+    if (result.success) {
+      addToast({ type: 'success', title: 'Apagado', message: 'Registro removido.' });
+    } else {
+      addToast({ type: 'error', title: 'Erro', message: 'Falha ao apagar.' });
+    }
     setDeleteData(null);
-  }, [deleteData, deleteEvent]);
+  }, [deleteData, deleteEvent, addToast]);
 
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">
@@ -135,15 +141,13 @@ const MainPage = () => {
         />
 
         <div className="flex-1 relative overflow-hidden">
-          {/* Troca de visão */}
+          {/* Alternador de Visão (Mapa/Lista) */}
           <div className="absolute top-4 w-full flex justify-center z-[400] pointer-events-none">
             <div className="bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 p-1 flex pointer-events-auto backdrop-blur-md bg-opacity-90">
               <button
                 onClick={() => setViewMode('map')}
                 className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'map'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  viewMode === 'map' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <MapIcon size={14} /> Mapa
@@ -151,9 +155,7 @@ const MainPage = () => {
               <button
                 onClick={() => setViewMode('table')}
                 className={`flex items-center gap-2 px-6 py-1.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all ${
-                  viewMode === 'table'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  viewMode === 'table' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <List size={14} /> Lista
@@ -161,8 +163,9 @@ const MainPage = () => {
             </div>
           </div>
 
+          {/* Overlay de Instrução para Adicionar Marker */}
           {isAddingMode && viewMode === 'map' && (
-            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[400] pointer-events-none animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[400] pointer-events-none animate-in fade-in slide-in-from-top-4">
               <div className="bg-slate-900/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 animate-bounce">
                 <MapPin size={18} className="text-red-400" />
                 <span className="font-bold text-sm tracking-wide">Escolha um local no mapa</span>
@@ -170,6 +173,7 @@ const MainPage = () => {
             </div>
           )}
 
+          {/* Renderização Condicional de Visão */}
           {viewMode === 'map' ? (
             <MainMap
               events={mapEvents}
@@ -179,10 +183,14 @@ const MainPage = () => {
               onMarkerClick={handleEventClick}
             />
           ) : (
-            <ListView events={filteredEvents} onViewDetails={handleEventClick} onDelete={handleRequestDelete} />
+            <ListView 
+              events={filteredEvents} 
+              onViewDetails={handleEventClick} 
+              onDelete={handleRequestDelete} 
+            />
           )}
 
-          {/* FAB */}
+          {/* Botão Flutuante (FAB) */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[400]">
             <button
               onClick={handleAddStart}
@@ -198,16 +206,15 @@ const MainPage = () => {
         </div>
       </div>
 
-      {/* Sidebar agora chama os Slugs de ETL */}
       <Sidebar
         events={filteredEvents}
         onEventClick={handleEventClick}
         onRunSeed={() => startETL('seed', {})} 
-        onOpenPopulate={handleOpenWikidata} 
+        onOpenPopulate={() => setEtlSlug('wikidata')} 
         onOpenKaggle={() => setEtlSlug('kaggle')}
       />
 
-      {/* Modais */}
+      {/* Camada de Modais */}
       <EventModal
         isOpen={showEventModal}
         onClose={() => setShowEventModal(false)}
@@ -228,18 +235,20 @@ const MainPage = () => {
         isOpen={!!deleteData}
         onClose={() => setDeleteData(null)}
         onConfirm={handleConfirmDelete}
-        title="Excluir?"
-        message={`Apagar "${deleteData?.name}"?`}
+        title="Excluir Registro?"
+        message={`Tem certeza que deseja apagar "${deleteData?.name}"?`}
       />
 
-      {/* Unificamos todos os modais de carga neste aqui */}
       <ETLModal
         isOpen={!!etlSlug}
         onClose={() => setEtlSlug(null)}
         integrationSlug={etlSlug}
       />
 
-      <NotificationModal notification={notification} onClose={() => setNotification(null)} />
+      <NotificationModal 
+        notification={notification} 
+        onClose={() => setNotification(null)} 
+      />
     </div>
   );
 };

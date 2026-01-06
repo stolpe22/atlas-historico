@@ -95,10 +95,12 @@ const MainMap = ({
         <MapController isAddingMode={isAddingMode} onMapClick={onMapClick} />
 
         <MarkerClusterGroup 
-          chunkedLoading 
+          chunkedLoading // <--- Já está aqui, mantém a UI fluida durante a carga
           iconCreateFunction={createClusterCustomIcon}
-          maxClusterRadius={MAP_CONFIG.clusterRadius}
+          maxClusterRadius={80} // Aumentar um pouco diminui o número de clusters na tela
           spiderfyOnMaxZoom={true}
+          removeOutsideVisibleBounds={true} // <--- ADICIONE ISSO: Remove markers fora da visão da tela
+          animate={true} // Melhora a percepção de performance
         >
           {events?.features?.map((feature) => (
             <Marker 
@@ -132,4 +134,11 @@ const MainMap = ({
   );
 };
 
-export default MainMap;
+// Isso evita que o mapa renderize se os eventos ou a posição não mudarem
+export default React.memo(MainMap, (prevProps, nextProps) => {
+  return (
+    prevProps.events === nextProps.events &&
+    prevProps.focusPosition === nextProps.focusPosition &&
+    prevProps.isAddingMode === nextProps.isAddingMode
+  );
+});
