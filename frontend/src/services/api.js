@@ -27,13 +27,6 @@ export const eventsApi = {
   delete: (id) => api.delete(`/events/${id}`)
 };
 
-export const populateApi = {
-  start: (options) => api.post('/populate', options),
-  startSeed: () => api.post('/populate/seed'),
-  getStatus: () => api.get('/populate/status'),
-  stop: () => api.post('/populate/stop')
-};
-
 export const settingsApi = {
   getIntegrations: () => api.get('/settings/integrations'),
   connectIntegration: (data) => api.post('/settings/integrations/connect', data),

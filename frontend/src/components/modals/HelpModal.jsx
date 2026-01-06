@@ -20,7 +20,7 @@ const HelpModal = ({ slug, isOpen, onClose }) => {
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
         <button onClick={onClose} className="mt-6 w-full py-2 bg-slate-200 dark:bg-slate-700 rounded-lg font-bold">
-          Fechar Tutorial
+          Fechar
         </button>
       </div>
     </div>
