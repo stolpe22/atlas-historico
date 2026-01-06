@@ -8,13 +8,10 @@ import ListView from '../components/list/ListView';
 import EventModal from '../components/modals/EventModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import NotificationModal from '../components/modals/NotificationModal';
-import PopulateModal from '../components/modals/PopulateModal';
-import PopulateIndicator from '../components/common/PopulateIndicator';
 import ETLModal from '../components/modals/ETLModal';
 
 import { useETL } from '../context/ETLContext';
 import { useEvents } from '../hooks/useEvents';
-import { usePopulate } from '../hooks/usePopulate';
 import { CONTINENTS, DEFAULT_DATE_RANGE } from '../utils/constants';
 
 const MainPage = () => {
@@ -49,22 +46,17 @@ const MainPage = () => {
     if (progressTrigger > 0) refreshEvents();
   }, [progressTrigger, refreshEvents]);
 
-  const {
-    isPopulating,
-    logs: populateLogs,
-    showModal: showPopulateModal,
-    setShowModal: setShowPopulateModal,
-    startExtraction,
-    startSeed,
-    stop: stopPopulate,
-  } = usePopulate((notif) => {
-    setNotification(notif);
-    refreshEvents();
-  });
-
   const filteredEvents = filterEvents(searchTerm);
 
   // Handlers
+
+  // Função para abrir o modal de extração (Wikidata) usando a interface de ETL
+  const handleOpenWikidata = () => {
+    // Se o seu backend já aceita 'wikidata' no /etl/run:
+    setEtlSlug('wikidata'); 
+  };
+
+
   const handleAddStart = useCallback(() => {
     if (!showEventModal && !isAddingMode) {
       setNewEvent({
@@ -128,11 +120,6 @@ const MainPage = () => {
     setDeleteData(null);
   }, [deleteData, deleteEvent]);
 
-  const handleRunSeed = () => {
-    // Em vez de abrir o modal antigo ou chamar startSeed, chamamos o ETL unificado
-    startETL('seed', {}); 
-  };
-
   return (
     <div className="flex flex-row h-full w-full overflow-hidden">
       <div className="flex-1 flex flex-col h-full relative min-w-0">
@@ -146,14 +133,6 @@ const MainPage = () => {
           filteredCount={filteredEvents.length}
           continents={CONTINENTS}
         />
-
-        {isPopulating && (
-          <PopulateIndicator
-            lastLog={populateLogs[populateLogs.length - 1]}
-            onMaximize={() => setShowPopulateModal(true)}
-            onStop={stopPopulate}
-          />
-        )}
 
         <div className="flex-1 relative overflow-hidden">
           {/* Troca de visão */}
@@ -219,11 +198,12 @@ const MainPage = () => {
         </div>
       </div>
 
+      {/* Sidebar agora chama os Slugs de ETL */}
       <Sidebar
         events={filteredEvents}
         onEventClick={handleEventClick}
-        onRunSeed={handleRunSeed}
-        onOpenPopulate={() => setShowPopulateModal(true)}
+        onRunSeed={() => startETL('seed', {})} 
+        onOpenPopulate={handleOpenWikidata} 
         onOpenKaggle={() => setEtlSlug('kaggle')}
       />
 
@@ -252,32 +232,11 @@ const MainPage = () => {
         message={`Apagar "${deleteData?.name}"?`}
       />
 
-      <PopulateModal
-        isOpen={showPopulateModal}
-        onClose={() => setShowPopulateModal(false)}
-        onConfirm={startExtraction}
-        isLoading={isPopulating}
-        logs={populateLogs}
-        onStop={stopPopulate}
-      />
-
+      {/* Unificamos todos os modais de carga neste aqui */}
       <ETLModal
         isOpen={!!etlSlug}
         onClose={() => setEtlSlug(null)}
         integrationSlug={etlSlug}
-        onRunOverride={
-          etlSlug === 'seed'
-            ? async () => {
-                await startSeed();
-                setNotification({
-                  type: 'success',
-                  title: 'Seed concluído',
-                  message: 'Dados restaurados de manual_events.json.'
-                });
-                refreshEvents();
-              }
-            : undefined
-        }
       />
 
       <NotificationModal notification={notification} onClose={() => setNotification(null)} />

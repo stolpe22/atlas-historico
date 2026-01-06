@@ -9,8 +9,6 @@ import MapController from './MapController';
 import { createLabelIcon, createClusterCustomIcon } from '../../utils/mapHelpers';
 import { MAP_CONFIG } from '../../utils/constants';
 
-import 'leaflet/dist/leaflet.css';
-
 const MAP_LAYERS = {
   light: {
     name: "Claro",
