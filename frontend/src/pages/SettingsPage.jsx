@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Database, Trash2, RefreshCw, Server, Terminal, Globe, Plus, X, Key, CheckCircle, Wrench } from 'lucide-react';
+import { Settings, Database, Trash2, RefreshCw, Server, Terminal, Globe, Plus, X, Key, CheckCircle, Wrench, HelpCircle } from 'lucide-react';
 import { settingsApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { useETL } from '../context/ETLContext';
 import ConfirmModal from '../components/modals/ConfirmModal';
+import HelpModal from '../components/modals/HelpModal';
 
 // --- MODAL DINÂMICO (CORRIGIDO: Recebe addToast via props) ---
 const DynamicIntegrationModal = ({ isOpen, onClose, integration, onSave, addToast }) => {
@@ -70,7 +70,6 @@ const DynamicIntegrationModal = ({ isOpen, onClose, integration, onSave, addToas
 // --- PÁGINA PRINCIPAL ---
 const SettingsPage = () => {
   const { addToast } = useToast();
-  const { startETL } = useETL();
 
   const [integrationsList, setIntegrationsList] = useState([]);
   const [selectedInteg, setSelectedInteg] = useState(null);
@@ -81,6 +80,8 @@ const SettingsPage = () => {
   const [syncing, setSyncing] = useState(false);
   const [syncLogs, setSyncLogs] = useState([]);
   const [taskId, setTaskId] = useState(null);
+
+  const [helpSlug, setHelpSlug] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -225,6 +226,15 @@ const SettingsPage = () => {
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                           {integ.name}
                           {integ.is_connected && <CheckCircle size={14} className="text-green-500" />}
+
+                          {/* BOTÃO DE HELP ADICIONADO AQUI */}
+                          <button 
+                            onClick={() => setHelpSlug(integ.slug)}
+                            className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-full transition-colors"
+                            title="Como configurar?"
+                          >
+                            <HelpCircle size={16} />
+                          </button>
                         </h3>
                         <p className="text-xs text-slate-500 line-clamp-1">{integ.description}</p>
                       </div>
@@ -294,6 +304,12 @@ const SettingsPage = () => {
         </section>
 
       </div>
+
+      <HelpModal 
+        slug={helpSlug} 
+        isOpen={!!helpSlug} 
+        onClose={() => setHelpSlug(null)} 
+      />
 
       {/* Modais de Gerenciamento */}
       <DynamicIntegrationModal 

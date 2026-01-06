@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .database import engine, Base
-from .routes import events_router, populate_router, settings_router, etl_router
+from .routes import events_router, populate_router, settings_router, etl_router, docs_router
 from .config import get_settings
 
 settings = get_settings()
@@ -26,11 +27,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/docs/assets", StaticFiles(directory="docs/integrations/assets"), name="docs_assets")
+
 # Rotas
 app.include_router(events_router)
 app.include_router(populate_router)
 app.include_router(etl_router)
 app.include_router(settings_router)
+app.include_router(docs_router)
 
 
 @app.get("/health")

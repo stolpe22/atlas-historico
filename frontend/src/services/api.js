@@ -42,6 +42,7 @@ export const settingsApi = {
   getGeonamesStats: () => api.get('/settings/geonames/stats'),
   syncGeonames: () => api.post('/settings/geonames/sync'),
   getTaskStatus: (taskId) => api.get(`/etl/status/${taskId}`),
+  getTutorial: (slug) => api.get(`/docs/integration/${slug}`),
 };
 
 export const etlApi = {
