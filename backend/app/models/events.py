@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Text, Enum as SQLEnum, Index
 from geoalchemy2 import Geometry
 from enum import Enum
 from ..database import Base
@@ -35,7 +35,6 @@ class HistoricalEvent(Base):
     )
     
     # PostGIS Geometry
-    location = Column(Geometry('POINT', srid=4326), nullable=False)
-
+    location = Column(Geometry('POINT', srid=4326, spatial_index=True), nullable=False)
     def __repr__(self) -> str:
         return f"<Event {self.id}: {self.name}>"

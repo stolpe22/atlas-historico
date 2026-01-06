@@ -7,6 +7,8 @@ class KaggleStaging(Base):
     Armazena os dados brutos vindos do Kaggle antes de processar.
     """
     __tablename__ = "kaggle_staging"
+    
+    __table_args__ = {"schema": "kaggle"}
 
     id = Column(Integer, primary_key=True, index=True)
     
