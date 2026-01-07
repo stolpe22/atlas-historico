@@ -1,10 +1,10 @@
 import random
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_
+from sqlalchemy import func, desc, text, and_
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from ...models import KaggleStaging, HistoricalEvent, EventSource, GeonamesCity
-from ...utils.helpers import calculate_period
+from ...utils import calculate_period, get_continent_from_coords
 
 def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, log_callback=None, stop_check_callback=None):
     
@@ -22,12 +22,10 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
         log("💤 Nada pendente para processar.")
         return 0
 
-    log(f"🚀 Iniciando processamento em LOTE de {len(rows)} registros...")
+    log(f"🚀 Iniciando processamento de {len(rows)} registros...")
 
     api_queue = [] 
     processed_count = 0
-    updated_count = 0
-    created_count = 0
 
     # =========================================================================
     # FASE 1: RESOLUÇÃO LOCAL (DB) ⚡
@@ -42,10 +40,11 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
 
         try:
             raw = row.raw_data
-            place_name = raw.get("Place Name", "").strip()
-            country_name = raw.get("Country", "").strip()
+            place_name = raw.get("Place Name", "") or ""
+            place_name = str(place_name).strip()
+            country_name = raw.get("Country", "") or ""
+            country_name = str(country_name).strip()
             
-            # Limpeza básica (remove espaços extras e vírgulas perdidas)
             if "," in place_name:
                 place_name = place_name.split(",")[0].strip()
 
@@ -53,11 +52,8 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
             found_local = False
             match_type = ""
 
-            # Lógica de Busca Hierárquica
             if place_name and place_name.lower() not in ["unknown", ""]:
-                
-                # 1. Tentativa Perfeita: Cidade + País (Ex: 'Mumbai', 'India')
-                # Busca cidade com esse nome ONDE o país também bate
+                # 1. Tentativa Perfeita: Cidade + País
                 city_match = db.query(GeonamesCity).filter(
                     func.lower(GeonamesCity.asciiname) == place_name.lower(),
                     func.lower(GeonamesCity.country_name) == country_name.lower()
@@ -68,7 +64,7 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
                     match_type = "Cidade+País"
                     found_local = True
 
-                # 2. Tentativa Relaxada: Só Cidade (Ex: 'Punjab' -> Pega a maior cidade chamada Punjab ou região)
+                # 2. Tentativa Relaxada: Só Cidade
                 if not found_local:
                     city_match = db.query(GeonamesCity).filter(
                         func.lower(GeonamesCity.asciiname) == place_name.lower()
@@ -79,8 +75,7 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
                         match_type = "Só Cidade"
                         found_local = True
 
-            # 3. Caso Especial: Place Name == Country (Ex: 'India', 'India')
-            # Se não achou cidade e o local é o próprio país, pega a maior cidade desse país (geralmente Capital)
+            # 3. Caso Especial: Place Name == Country
             if not found_local and country_name and (place_name.lower() == country_name.lower() or not place_name):
                  capital_match = db.query(GeonamesCity).filter(
                     func.lower(GeonamesCity.country_name) == country_name.lower()
@@ -92,9 +87,9 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
                     found_local = True
 
             if found_local:
-                _save_event(db, row, lat, lon, f"🌍 DB ({match_type})", raw, created_count, updated_count)
+                _save_event(db, row, lat, lon, f"🌍 DB ({match_type})", raw)
                 processed_count += 1
-                if processed_count % 50 == 0:
+                if processed_count % 100 == 0:
                     log(f"⚡ Processados {processed_count} localmente...")
             else:
                 api_queue.append(row)
@@ -103,7 +98,7 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
             row.error_msg = str(e)
     
     db.commit()
-    log(f"✅ FASE 1 Concluída. Resolvidos: {processed_count - len(api_queue) if processed_count > len(api_queue) else processed_count}. Fila API: {len(api_queue)}")
+    log(f"✅ FASE 1 Concluída. Fila API: {len(api_queue)}")
 
     # =========================================================================
     # FASE 2: FALLBACK API 🐢
@@ -111,7 +106,7 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
     if api_queue:
         log(f"☁️ [FASE 2] API Nominatim para {len(api_queue)} registros...")
         geolocator = Nominatim(user_agent="atlas_historico_v3")
-        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1.5, max_retries=2, error_wait_seconds=2.0)
+        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1.1, max_retries=2)
 
         for i, row in enumerate(api_queue):
             if stop_check_callback and stop_check_callback():
@@ -119,18 +114,17 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
 
             try:
                 raw = row.raw_data
-                place_name = raw.get("Place Name", "").strip()
-                country = raw.get("Country", "").strip()
+                place_name = raw.get("Place Name", "") or ""
+                country = raw.get("Country", "") or ""
                 
-                # Se place e country forem iguais, manda só o country pra API
                 query = f"{place_name}, {country}"
-                if place_name.lower() == country.lower():
+                if str(place_name).lower() == str(country).lower():
                     query = country
 
                 lat, lon = 0.0, 0.0
                 geo_source = "N/A"
 
-                if query.lower() not in ["unknown, unknown", "", "unknown"]:
+                if query.strip() and query.lower() not in ["unknown, unknown", "unknown"]:
                     try:
                         loc = geocode(query)
                         if loc:
@@ -138,15 +132,12 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
                             geo_source = "☁️ Nominatim"
                     except Exception: pass
                 
-                is_new = _save_event(db, row, lat, lon, geo_source, raw, created_count, updated_count)
-                if is_new: created_count += 1 
-                else: updated_count += 1
+                _save_event(db, row, lat, lon, geo_source, raw)
                 processed_count += 1
                 
-                name = raw.get("Name of Incident") or "Evento"
-                log(f"🐢 [{i+1}/{len(api_queue)}] {name} -> {geo_source} ({lat:.2f}, {lon:.2f})")
-                
-                if i % 5 == 0: db.commit()
+                if i % 10 == 0: 
+                    log(f"🐢 Processando API: {i+1}/{len(api_queue)}")
+                    db.commit()
 
             except Exception as e:
                 row.error_msg = str(e)
@@ -155,28 +146,32 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
     log(f"🏁 Finalizado! Total: {processed_count}")
     return processed_count
 
-def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
-    # Jitter
+
+def _save_event(db, row, lat, lon, source_label, raw):
+    # Jitter para não sobrepor pontos no mesmo lugar
     if lat != 0 and lon != 0:
-        lat += random.uniform(-0.015, 0.015)
-        lon += random.uniform(-0.015, 0.015)
+        lat += random.uniform(-0.01, 0.01)
+        lon += random.uniform(-0.01, 0.01)
+    
+    # 🌟 AQUI ESTÁ A MÁGICA: Detecta continente pelo polígono
+    detected_continent = get_continent_from_coords(db, lat, lon)
     
     location_wkt = f"POINT({lon} {lat})"
-    name = raw.get("Name of Incident") or raw.get("Event") or "Evento"
+    name = raw.get("Name of Incident") or raw.get("Event") or "Evento Desconhecido"
     
+    # Limpeza de Ano
     year_raw = str(raw.get("Year", ""))
     year_clean = None
     if "BC" in year_raw.upper():
         clean = ''.join(filter(str.isdigit, year_raw))
         if clean: year_clean = -int(clean)
-    elif year_raw.isdigit():
+    elif year_raw.replace('-','').isdigit():
         year_clean = int(year_raw)
 
     if year_clean is None:
         row.processed = True
-        return False
+        return
 
-    # período correto baseado no ano
     period_val = calculate_period(year_clean)
 
     content_formatted = (
@@ -185,19 +180,18 @@ def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
         f"Outcome: {raw.get('Outcome', 'N/A')}"
     )
 
+    # Verifica se já existe para evitar duplicatas (Upsert Manual)
     existing_event = db.query(HistoricalEvent).filter(
         HistoricalEvent.name == name,
-        HistoricalEvent.year_start == year_clean,
-        HistoricalEvent.source == EventSource.KAGGLE
+        HistoricalEvent.year_start == year_clean
     ).first()
 
     if existing_event:
         existing_event.location = location_wkt
         existing_event.content = content_formatted
-        existing_event.description = str(raw.get("Impact", ""))[:990]
+        existing_event.continent = detected_continent # Atualiza com o detectado
         existing_event.period = period_val
         row.processed = True
-        return False
     else:
         new_event = HistoricalEvent(
             name=name,
@@ -205,11 +199,10 @@ def _save_event(db, row, lat, lon, source_label, raw, c_count, u_count):
             content=content_formatted,
             year_start=year_clean,
             year_end=year_clean,
-            continent="Desconhecido",
+            continent=detected_continent, # Usa o detectado pelo polígono!
             location=location_wkt,
             source=EventSource.KAGGLE,
-            period=period_val  # <-- agora usa período correto
+            period=period_val
         )
         db.add(new_event)
         row.processed = True
-        return True
