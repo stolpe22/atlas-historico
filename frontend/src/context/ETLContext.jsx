@@ -10,10 +10,22 @@ export const ETLProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : {};
   });
 
+  // Estado para notificar a MainPage que algo mudou e ela deve dar refresh na lista
+  const [progressTrigger, setProgressTrigger] = useState(0);
+
   // 2. Persistência Centralizada
   useEffect(() => {
     localStorage.setItem('atlas_active_tasks', JSON.stringify(tasks));
   }, [tasks]);
+
+  // Helper interno para limpar tarefa
+  const removeTask = useCallback((slug) => {
+    setTasks(prev => {
+      const newTasks = { ...prev };
+      delete newTasks[slug];
+      return newTasks;
+    });
+  }, []);
 
   // 3. Polling Inteligente Unificado
   useEffect(() => {
@@ -34,6 +46,11 @@ export const ETLProvider = ({ children }) => {
           if (res.data) {
             const { status, logs } = res.data;
 
+            // Se o status mudou para completed, incrementa o trigger para atualizar a lista
+            if (status === 'completed' && taskData.status !== 'completed') {
+              setProgressTrigger(prev => prev + 1);
+            }
+
             setTasks(prev => ({
               ...prev,
               [slug]: { 
@@ -42,8 +59,6 @@ export const ETLProvider = ({ children }) => {
                 logs: logs || [] 
               }
             }));
-
-            // Se a tarefa terminou, o polling para ela para no próximo ciclo
           }
         } catch (e) {
           console.error(`Erro no polling da task [${slug}]:`, e);
@@ -56,11 +71,11 @@ export const ETLProvider = ({ children }) => {
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [tasks]);
+  }, [tasks, removeTask]);
 
   // 4. API do Contexto
   
-  // Registra ou atualiza uma tarefa no gerenciador
+  // Registra manualmente uma tarefa (usado pelo ETLModal)
   const registerTask = useCallback((slug, taskId, config = {}) => {
     const { showModal = true, name = slug } = config;
     setTasks(prev => ({
@@ -75,14 +90,28 @@ export const ETLProvider = ({ children }) => {
     }));
   }, []);
 
-  // Remove uma tarefa (limpa estado e localStorage)
-  const removeTask = useCallback((slug) => {
-    setTasks(prev => {
-      const newTasks = { ...prev };
-      delete newTasks[slug];
-      return newTasks;
-    });
-  }, []);
+  // 🌟 NOVO: Função Helper para iniciar ETL direto (usado pela Sidebar/MainPage)
+  const startETL = useCallback(async (slug, params = {}) => {
+    try {
+      const res = await etlApi.runIntegration(slug, params);
+      
+      // Define nomes amigáveis baseados no slug
+      let friendlyName = slug;
+      if (slug === 'seed') friendlyName = "Restaurar Local";
+      if (slug === 'kaggle') friendlyName = "Importação Kaggle";
+      if (slug === 'wikidata') friendlyName = "Extração Wikidata";
+
+      registerTask(slug, res.data.task_id, {
+        showModal: true,
+        name: friendlyName
+      });
+      return { success: true };
+    } catch (e) {
+      console.error("Erro ao iniciar ETL:", e);
+      // Opcional: Você pode disparar um toast de erro aqui se injetar o ToastContext
+      throw e; 
+    }
+  }, [registerTask]);
 
   // Para uma tarefa em execução
   const stopTask = useCallback(async (slug) => {
@@ -109,7 +138,9 @@ export const ETLProvider = ({ children }) => {
       registerTask, 
       removeTask, 
       stopTask, 
-      getTask 
+      getTask,
+      startETL,       // <--- Agora existe!
+      progressTrigger // <--- Agora existe!
     }}>
       {children}
     </ETLContext.Provider>

@@ -7,7 +7,7 @@ from typing import List, Optional
 from ..models import HistoricalEvent, EventSource
 from ..schemas import EventCreate, EventResponse, EventGeoCollection, EventGeoFeature
 from ..utils.helpers import calculate_period
-
+from ..utils.spatial import get_continent_from_coords
 
 class EventService: 
     """Serviço para gerenciamento de eventos históricos."""
@@ -25,9 +25,9 @@ class EventService:
         return [self._to_response(e) for e in events]
 
     def get_filtered(
-        self,
-        start_year: int,
-        end_year: int,
+        self, 
+        start_year: int, 
+        end_year: int, 
         continent: Optional[str] = None
     ) -> EventGeoCollection:
         """Retorna eventos filtrados como GeoJSON."""
@@ -46,9 +46,16 @@ class EventService:
         
         return EventGeoCollection(features=features)
 
+    def detect_continent(self, latitude: float, longitude: float) -> str:
+        """
+        Método público para ser usado pela API (/events/detect-continent).
+        Usa o utilitário compartilhado para evitar duplicação de lógica SQL.
+        """
+        return get_continent_from_coords(self.db, latitude, longitude)
+
     def create(self, event_data: EventCreate) -> dict:
         """Cria ou atualiza um evento."""
-        # Verifica duplicata
+        # Verifica duplicata por Nome + Ano
         existing = self._find_existing(event_data.name, event_data.year_start)
         
         if existing: 
@@ -73,7 +80,7 @@ class EventService:
     # MÉTODOS PRIVADOS
     # ========================================================================
 
-    def _find_existing(self, name: str, year:  int) -> Optional[HistoricalEvent]:
+    def _find_existing(self, name: str, year: int) -> Optional[HistoricalEvent]:
         """Busca evento existente por nome e ano."""
         return self.db.query(HistoricalEvent).filter(
             HistoricalEvent.name.ilike(name),
@@ -81,36 +88,44 @@ class EventService:
         ).first()
 
     def _handle_existing(self, existing: HistoricalEvent, new_data: EventCreate) -> dict:
-        """Lida com evento duplicado - atualiza se apropriado."""
-        should_update = (
-            existing.source in (EventSource.MANUAL, None) and
-            new_data.source in ("wikidata", "seed")
-        )
+        """
+        Lida com evento duplicado.
+        Regra: Se o existente for MANUAL e o novo vier de automação (Wiki/Kaggle), 
+        geralmente não sobrescrevemos, a menos que queiramos enriquecer dados.
+        Aqui mantemos a lógica de atualizar se necessário.
+        """
+        # Exemplo de regra: Atualiza se o dado novo for mais completo
+        # ou se quisermos forçar a atualização da fonte.
         
-        if should_update:
-            existing.source = EventSource(new_data.source)
-            existing.continent = new_data.continent
-            
-            if new_data.content and len(new_data.content) > len(existing.content or ""):
-                existing.content = new_data.content
-            
+        # Se for seed ou wikidata tentando sobrescrever manual, podemos bloquear ou permitir
+        # Neste caso, vamos permitir atualização simples de conteúdo se for maior
+        if new_data.content and len(new_data.content) > len(existing.content or ""):
+            existing.content = new_data.content
+            existing.continent = new_data.continent # Atualiza continente caso tenha melhorado
             self.db.commit()
             return {"status": "updated", "id": existing.id}
         
-        return {"status": "skipped", "id":  existing.id}
+        return {"status": "skipped", "id": existing.id}
 
     def _create_new(self, event_data: EventCreate) -> dict:
         """Cria novo evento."""
         period = event_data.period or calculate_period(event_data.year_start)
+        
+        # Cria o ponto WKT para o PostGIS
         wkt = f"SRID=4326;POINT({event_data.longitude} {event_data.latitude})"
         
+        # Se o frontend mandou continente, usa. Se não, tenta detectar aqui também.
+        continent_val = event_data.continent
+        if not continent_val or continent_val == "Outro":
+             continent_val = self.detect_continent(event_data.latitude, event_data.longitude)
+
         event = HistoricalEvent(
             name=event_data.name,
             description=event_data.description,
             content=event_data.content,
             year_start=event_data.year_start,
             year_end=event_data.year_end,
-            continent=event_data.continent,
+            continent=continent_val,
             period=period,
             source=EventSource(event_data.source),
             location=wkt
@@ -120,10 +135,10 @@ class EventService:
         self.db.commit()
         self.db.refresh(event)
         
-        return {"status":  "created", "id": event.id, "name": event.name}
+        return {"status": "created", "id": event.id, "name": event.name}
 
     def _to_response(self, event: HistoricalEvent) -> EventResponse: 
-        """Converte modelo para schema de resposta."""
+        """Converte modelo SQLAlchemy para Pydantic Response."""
         shape = to_shape(event.location)
         return EventResponse(
             id=event.id,
@@ -140,7 +155,7 @@ class EventService:
         )
 
     def _to_geo_feature(self, event: HistoricalEvent) -> EventGeoFeature:
-        """Converte modelo para GeoJSON Feature."""
+        """Converte modelo SQLAlchemy para GeoJSON Feature."""
         geom = to_shape(event.location)
         return EventGeoFeature(
             geometry=mapping(geom),
@@ -150,7 +165,7 @@ class EventService:
                 "description": event.description,
                 "content": event.content,
                 "year": event.year_start,
-                "year_end": event.year_end, # <--- ADICIONE ESTA LINHA
+                "year_end": event.year_end,
                 "period": event.period,
                 "continent": event.continent,
                 "source": event.source.value if event.source else None

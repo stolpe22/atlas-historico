@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MapPin, Calendar, Languages, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Languages, Loader2, Globe, Lock } from 'lucide-react';
 import { formatYearRange } from '../../utils/formatters';
 import { translateText } from '../../services/translate';
+import { eventsApi } from '../../services/api'; // <--- Importante: API para detecção
 
 // ============================================================================
-// VIEW MODE COMPONENT
+// VIEW MODE COMPONENT (Mantido igual, apenas renderização)
 // ============================================================================
 const EventViewMode = ({ eventData }) => {
   const [isTranslating, setIsTranslating] = useState(false);
@@ -163,72 +164,180 @@ const EventViewMode = ({ eventData }) => {
 };
 
 // ============================================================================
-// CREATE MODE COMPONENT
+// CREATE MODE COMPONENT (ATUALIZADO PARA INTELIGÊNCIA ESPACIAL) 🧠
 // ============================================================================
 const EventCreateMode = ({ 
   newEvent, 
   setNewEvent, 
   onSave, 
-  onPickFromMap, 
-  continents 
+  onPickFromMap
+  // continents - removido pois não usamos mais select
 }) => {
+  const [detecting, setDetecting] = useState(false);
+
   const updateField = (field, value) => setNewEvent(prev => ({ ...prev, [field]: value }));
-  const inputClasses = "w-full p-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition";
-  const labelClasses = "block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300";
+  
+  const inputClasses = "w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm";
+  const labelClasses = "block text-xs font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400";
+
+  // 🧠 EFEITO DE INTELIGÊNCIA ESPACIAL
+  // Sempre que lat/lon mudar (seja digitando ou clicando no mapa), detecta o continente
+  useEffect(() => {
+    const lat = parseFloat(newEvent.latitude);
+    const lon = parseFloat(newEvent.longitude);
+
+    // Valida se são números reais e diferentes de 0,0 (padrão inicial)
+    if (!isNaN(lat) && !isNaN(lon) && (lat !== 0 || lon !== 0)) {
+      setDetecting(true);
+      
+      // Pequeno delay (debounce) para não chamar API enquanto digita rápido
+      const timeoutId = setTimeout(async () => {
+        try {
+          const res = await eventsApi.detectContinent(lat, lon);
+          updateField('continent', res.data.continent);
+        } catch (error) {
+          console.error("Erro ao detectar continente", error);
+          updateField('continent', "Erro na detecção");
+        } finally {
+          setDetecting(false);
+        }
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [newEvent.latitude, newEvent.longitude]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 animate-in slide-in-from-bottom-4 fade-in duration-300">
+      
+      {/* Nome */}
       <div>
-        <label className={labelClasses}>Nome</label>
-        <input type="text" className={inputClasses} value={newEvent.name} onChange={e => updateField('name', e.target.value)} />
+        <label className={labelClasses}>Nome do Evento <span className="text-red-500">*</span></label>
+        <input 
+          type="text" 
+          placeholder="Ex: Queda de Constantinopla"
+          className={inputClasses} 
+          value={newEvent.name} 
+          onChange={e => updateField('name', e.target.value)} 
+          autoFocus
+        />
       </div>
+
+      {/* Datas (Agora com Range) */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClasses}>Ano (Use negativo para a.C.)</label>
-          <input type="number" className={`${inputClasses} dark:[color-scheme:dark]`} value={newEvent.year_start} onChange={e => updateField('year_start', e.target.value)} />
+          <label className={labelClasses}>Ano Inicial <span className="text-red-500">*</span></label>
+          <div className="relative">
+            <input 
+              type="number" 
+              placeholder="-4000, 2024, etc."
+              className={`${inputClasses} dark:[color-scheme:dark] pr-8`} 
+              value={newEvent.year_start} 
+              onChange={e => updateField('year_start', e.target.value)} 
+            />
+            <span className="absolute right-3 top-2.5 text-xs text-slate-400 font-bold pointer-events-none">ANO</span>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-1">Use negativo para a.C.</p>
         </div>
         <div>
-          <label className={labelClasses}>Continente</label>
-          <select className={inputClasses} value={newEvent.continent} onChange={e => updateField('continent', e.target.value)}>
-            {continents.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          <label className={labelClasses}>Ano Final (Opcional)</label>
+          <div className="relative">
+             <input 
+              type="number" 
+              placeholder="Opcional"
+              className={`${inputClasses} dark:[color-scheme:dark]`} 
+              value={newEvent.year_end || ''} 
+              onChange={e => updateField('year_end', e.target.value)} 
+            />
+          </div>
         </div>
       </div>
+
+      {/* Localização Inteligente */}
+      <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <Globe size={16} className="text-blue-500" />
+            Geolocalização
+          </span>
+          <button 
+            onClick={onPickFromMap} 
+            className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/60 flex items-center gap-1 transition font-bold"
+          >
+            <MapPin size={14} /> Marcar no Mapa
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 text-xs mb-4">
+          <div>
+            <label className="text-slate-500 dark:text-slate-400 block mb-1 font-semibold">Latitude</label>
+            <input 
+              type="number" 
+              step="any" 
+              className={`${inputClasses} bg-white`} 
+              value={newEvent.latitude} 
+              onChange={e => updateField('latitude', e.target.value)} 
+            />
+          </div>
+          <div>
+            <label className="text-slate-500 dark:text-slate-400 block mb-1 font-semibold">Longitude</label>
+            <input 
+              type="number" 
+              step="any" 
+              className={`${inputClasses} bg-white`} 
+              value={newEvent.longitude} 
+              onChange={e => updateField('longitude', e.target.value)} 
+            />
+          </div>
+        </div>
+
+        {/* Campo de Continente Automático (Read Only) */}
+        <div className="relative">
+          <label className={labelClasses}>Continente (Automático)</label>
+          <div className="relative">
+            <input 
+              type="text" 
+              className={`${inputClasses} bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed pl-9`} 
+              value={detecting ? "Calculando localização..." : (newEvent.continent || "Aguardando coordenadas")} 
+              readOnly
+            />
+            <div className="absolute left-3 top-2.5 text-slate-400">
+              {detecting ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <Lock size={16} />}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Descrições */}
       <div>
         <label className={labelClasses}>Descrição Curta</label>
         <input type="text" className={inputClasses} value={newEvent.description} onChange={e => updateField('description', e.target.value)} />
       </div>
+      
       <div>
-        <label className={labelClasses}>Resumo / História Completa</label>
-        <textarea rows="6" className={`${inputClasses} resize-none custom-scrollbar`} value={newEvent.content} onChange={e => updateField('content', e.target.value)} />
+        <label className={labelClasses}>Conteúdo Detalhado</label>
+        <textarea 
+          rows="5" 
+          className={`${inputClasses} resize-none custom-scrollbar`} 
+          value={newEvent.content} 
+          onChange={e => updateField('content', e.target.value)} 
+          placeholder="Escreva a história completa aqui..."
+        />
       </div>
-      <div className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-lg border border-slate-200 dark:border-slate-600">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-bold text-slate-500 dark:text-slate-400">Localização Geográfica</span>
-          <button onClick={onPickFromMap} className="text-xs bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 px-2 py-1 rounded hover:bg-brand-200 dark:hover:bg-brand-900/60 flex items-center gap-1 transition">
-            <MapPin size={12} /> Selecionar no Mapa
-          </button>
-        </div>
-        <div className="grid grid-cols-2 gap-4 text-xs">
-          <div>
-            <label className="text-slate-600 dark:text-slate-400 block mb-1">Latitude</label>
-            <input type="number" step="any" className={`${inputClasses} dark:[color-scheme:dark]`} value={newEvent.latitude} onChange={e => updateField('latitude', e.target.value)} />
-          </div>
-          <div>
-            <label className="text-slate-600 dark:text-slate-400 block mb-1">Longitude</label>
-            <input type="number" step="any" className={`${inputClasses} dark:[color-scheme:dark]`} value={newEvent.longitude} onChange={e => updateField('longitude', e.target.value)} />
-          </div>
-        </div>
-      </div>
-      <button onClick={onSave} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold shadow-lg shadow-brand-500/30 transition transform active:scale-[0.98]">
-        💾 Salvar Registro
+
+      <button 
+        onClick={onSave} 
+        className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-[0.98] flex justify-center items-center gap-2"
+      >
+        <MapPin size={18} />
+        Salvar no Atlas
       </button>
     </div>
   );
 };
 
 // ============================================================================
-// MAIN MODAL COMPONENT
+// MAIN WRAPPER
 // ============================================================================
 const EventModal = ({ 
   isOpen, 
@@ -245,16 +354,16 @@ const EventModal = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar p-6 border border-slate-200 dark:border-slate-700"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">
-            {mode === 'view' ? 'Detalhes Históricos' : 'Novo Registro'}
+        <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
+          <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
+            {mode === 'view' ? <><Languages size={24} className="text-blue-500"/> Detalhes do Evento</> : <><MapPin size={24} className="text-blue-500"/> Novo Evento</>}
           </h2>
           <button 
             onClick={onClose} 

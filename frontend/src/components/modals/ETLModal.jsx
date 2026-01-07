@@ -22,6 +22,7 @@ const ADAPTER_UI_CONFIG = {
     ctaLabel: "Iniciar Processamento",
     icon: "https://www.kaggle.com/static/images/site-logo.svg",
     description: "Importação de datasets históricos via API",
+    allowCustomInput: false, // <--- CONTROLE AQUI (False = esconde o input de texto)
     defaultParams: { kaggle_id: "" },
     presets: [
       {
@@ -38,6 +39,7 @@ const ADAPTER_UI_CONFIG = {
     ctaLabel: "Restaurar agora",
     icon: "https://cdn-icons-png.flaticon.com/512/620/620851.png",
     description: "Importa manual_events.json",
+    allowCustomInput: false,
     defaultParams: {},
     inputs: [],
     presets: [
@@ -55,19 +57,18 @@ const ADAPTER_UI_CONFIG = {
     ctaLabel: "Iniciar Extração",
     icon: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Wikidata-logo.svg",
     description: "Busca eventos históricos diretamente da base SPARQL",
+    allowCustomInput: true, // <--- Exemplo: Wikidata talvez precise de inputs customizados
     defaultParams: { start_year: 1800, end_year: 1900, continents: ["Europa"] },
     presets: []
   }
 };
 
 const ETLModal = ({ isOpen, onClose, integrationSlug = 'kaggle', onRunOverride }) => {
-  // Alterado para usar registerTask conforme a nova estrutura do contexto
   const { registerTask } = useETL();
   const { addToast } = useToast();
   
   const { integration, isConnected, loading, refresh } = useIntegrationStatus(integrationSlug);
 
-  // Estados locais para orquestração de modais internos
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [helpSlug, setHelpSlug] = useState(null);
 
@@ -80,9 +81,6 @@ const ETLModal = ({ isOpen, onClose, integrationSlug = 'kaggle', onRunOverride }
 
   if (!isOpen || !config) return null;
 
-  /**
-   * CORREÇÃO: Nova lógica de execução para o sistema multi-tarefa
-   */
   const handleRun = async () => {
     try {
       if (onRunOverride) { 
@@ -91,11 +89,8 @@ const ETLModal = ({ isOpen, onClose, integrationSlug = 'kaggle', onRunOverride }
         return; 
       }
 
-      // 1. Chama a API para disparar a task no backend
       const res = await etlApi.runIntegration(integrationSlug, params);
       
-      // 2. Registra no ETLContext para iniciar o polling e abrir o modal
-      // showModal: true garante que o GlobalETLModal seja exibido
       registerTask(integrationSlug, res.data.task_id, { 
         showModal: true, 
         name: config.title 
@@ -107,7 +102,7 @@ const ETLModal = ({ isOpen, onClose, integrationSlug = 'kaggle', onRunOverride }
         message: 'O processamento começou em segundo plano.' 
       });
       
-      onClose(); // Fecha o modal de configuração
+      onClose();
     } catch (e) {
       const msg = e.response?.data?.detail || e.message;
       addToast({ type: 'error', title: 'Erro ao Iniciar', message: msg });
@@ -216,16 +211,16 @@ const ETLModal = ({ isOpen, onClose, integrationSlug = 'kaggle', onRunOverride }
                 </div>
               )}
 
-              {/* Renderização dinâmica de campos se necessário */}
-              {integrationSlug === 'kaggle' && !config.presets?.some(p => p.value === params.kaggle_id) && (
+              {/* CORREÇÃO AQUI: Respeita a flag allowCustomInput */}
+              {config.allowCustomInput && !config.presets?.some(p => p.value === params.kaggle_id) && (
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl space-y-3 border dark:border-slate-700">
-                   <label className="block text-[10px] font-bold text-slate-500 mb-1">Kaggle Dataset ID</label>
+                   <label className="block text-[10px] font-bold text-slate-500 mb-1">Dataset ID / Parâmetros</label>
                    <input 
                       type="text" 
                       className="w-full p-2 text-sm border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                       value={params.kaggle_id || ''}
                       onChange={(e) => setParams({...params, kaggle_id: e.target.value})}
-                      placeholder="usuario/dataset-nome"
+                      placeholder="Ex: usuario/dataset"
                    />
                 </div>
               )}
