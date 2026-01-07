@@ -1,280 +1,189 @@
-# Atlas Histórico
+# 🌍 Atlas Histórico
 
-Aplicação full-stack para explorar eventos históricos em mapa e lista, com criação manual, importação por ETL (seed local e integrações), e tradução on-demand no modal de eventos (LibreTranslate).
+O Atlas Histórico é uma plataforma geográfica interativa de código aberto projetada para consolidar, visualizar e gerenciar cronologias históricas mundiais. Combinando o poder de bancos de dados geoespaciais com uma interface dinâmica, o projeto permite que usuários explorem eventos através do tempo e do espaço.
 
----
+## 📖 Índice
+- [Visão Geral e Propósito](#-visão-geral-e-propósito)
+- [Arquitetura de Software](#-arquitetura-de-software)
+  - [Frontend: Data-Driven Design](#frontend-data-driven-design)
+  - [Backend: Motor de ETL Unificado](#backend-motor-de-etl-unificado)
+- [Stack Tecnológica](#-stack-tecnológica)
+- [Obter o Código](#-obter-o-código) <!-- antes de instalação -->
+- [Instalação e Configuração](#-instalação-e-configuração)
+  - [Via Docker (Recomendado)](#via-docker-recomendado)
+  - [Execução Manual (Desenvolvimento)](#execução-manual-desenvolvimento)
+- [Guia do Desenvolvedor: Expandindo o Projeto](#-guia-do-desenvolvedor-expandindo-o-projeto)
+- [Funcionalidades Principais](#-funcionalidades-principais)
+- [Estrutura de Pastas](#-estrutura-de-pastas)
+- [Variáveis de Ambiente](#-variáveis-de-ambiente)
 
-## Índice
-- [Arquitetura](#arquitetura)
-- [Pré-requisitos](#pré-requisitos)
-- [Como iniciar](#como-iniciar)
-  - [Com Docker Compose (recomendado)](#com-docker-compose-recomendado)
-  - [Usando o script `run.sh`](#usando-o-script-runsh)
-  - [Rodando local sem Docker (dev rápido)](#rodando-local-sem-docker-dev-rápido)
-- [URLs úteis](#urls-úteis)
-- [Serviços e variáveis](#serviços-e-variáveis)
-  - [Postgres/PostGIS](#postgrespostgis)
-  - [Backend](#backend)
-  - [Frontend](#frontend)
-  - [LibreTranslate](#libretranslate)
-- [ETL, Seed e integrações](#etl-seed-e-integrações)
-  - [Seeder de integrações (`seeder.py`)](#seeder-de-integrações-seederpy)
-  - [Seed local de eventos (`manual_events.json`)](#seed-local-de-eventos-manual_eventsjson)
-  - [Integração Kaggle](#integração-kaggle)
-  - [Wikidata / Gerador](#wikidata--gerador)
-- [Tradução no modal de eventos](#tradução-no-modal-de-eventos)
-- [Fluxo de uso na UI](#fluxo-de-uso-na-ui)
-- [Estrutura de pastas](#estrutura-de-pastas)
-  - [Frontend](#frontend-1)
-  - [Backend](#backend-1)
-- [Resolução de problemas](#resolução-de-problemas)
-- [Referência rápida de comandos](#referência-rápida-de-comandos)
+## 🎯 Visão Geral e Propósito
+Muitos dados históricos estão dispersos em arquivos CSV, bancos de dados legados ou APIs complexas. O Atlas Histórico foi construído para resolver este problema, estabelecendo a infraestrutura fundamental de um Agregador Geográfico.
 
----
+Embora o projeto esteja em estágio inicial de população — contando atualmente com uma base semente curada (presets locais) e capacidade de importação de datasets do Kaggle — sua arquitetura foi desenhada para escalar. A plataforma oferece uma interface unificada onde dados são normalizados e enriquecidos automaticamente. Diferente de mapas simples, o projeto utiliza inteligência espacial para deduzir informações geográficas (como continentes) a partir de coordenadas puras, preenchendo lacunas comuns em datasets brutos e preparando o terreno para integrar fontes massivas como a Wikidata no futuro.
 
-## Arquitetura
-- **frontend** (React + Vite) servindo SPA em `http://localhost:3000`.
-- **backend** (FastAPI) exposto em `http://localhost:8000`.
-- **db**: Postgres + PostGIS.
-- **libretranslate**: serviço local de tradução EN/PT em `http://localhost:5000`.
+## 🏗️ Arquitetura de Software
 
----
+### Frontend: Data-Driven Design
+A interface não é apenas um conjunto de páginas, mas um sistema reativo que responde a metadados e gerencia processos complexos de longa duração.
+- **Configuração via Constantes:** Os formulários de importação são gerados dinamicamente baseados na `ADAPTER_UI_CONFIG`. Adicionar um novo campo de input não requer alteração no JSX.
+- **Gerenciamento de Estado Persistente (Multi-Tasking):** O `ETLContext` suporta múltiplas tarefas simultâneas. O estado de cada processo (Importação CSV, Sincronização GeoNames) é salvo no `localStorage`.
+- **Resiliência ao Refresh (F5):** Se o usuário recarregar a página durante uma importação, o frontend recupera os `taskIds`, reconecta-se ao backend e retoma a exibição dos logs em tempo real sem perder o contexto.
+- **Visualização de Alta Performance:** Implementação de Leaflet Marker Clustering com carregamento fragmentado, garantindo fluidez (60fps) no mapa.
 
-## Pré-requisitos
-- Docker e Docker Compose v3.8+.
-- Portas livres: 3000 (frontend), 8000 (backend), 5000 (tradução), 5434 (exposição do Postgres no host).
+### Backend: Motor de ETL Unificado
+O backend utiliza o Registry Pattern para gerenciar integrações. Existe um endpoint mestre (`/etl/run`) que despacha comandos para adaptadores especializados.
+- **Adaptadores Polimórficos:** A lógica de extração é isolada. Atualmente suporta Kaggle e Seed (JSON local), com estrutura pronta para implementação de novos robôs.
+- **Geocoding & Geofencing (PostGIS):** O sistema utiliza a extensão espacial do PostgreSQL para realizar operações geométricas avançadas.
+  - **Detecção Automática:** O sistema carrega multipolígonos de continentes (fonte: `hrbrmstr/continents.json`) e utiliza a função `ST_Intersects` para identificar automaticamente em qual continente um evento ocorreu, enriquecendo o dado bruto.
+- **TaskManager Singleton:** Gerencia threads em background, permitindo logs granulares e cancelamento gracioso de tarefas.
 
----
-
-## Como iniciar
-
-### Com Docker Compose (recomendado)
-```bash
-docker compose up -d --build
-```
-Isso sobe: db, backend, frontend e libretranslate.
-
-### Usando o script `run.sh`
-```bash
-chmod +x run.sh
-./run.sh
-```
-O script chama `docker compose up -d --build`, aguarda e exibe URLs:
-- Frontend: http://localhost:3000
-- Backend Docs: http://localhost:8000/docs
-- LibreTranslate: http://localhost:5000
-
-### Rodando local sem Docker (dev rápido)
-1) **DB**: suba Postgres/PostGIS (pode usar o serviço do compose apenas para o db).
-2) **Backend**:
-   ```bash
-   cd backend
-   python -m venv .venv && source .venv/bin/activate
-   pip install -r requirements.txt
-   export DB_HOST=localhost DB_PORT=5434 DB_NAME=history_atlas DB_USER=admin DB_PASSWORD=admin
-   uvicorn app.main:app --reload --port 8000
-   ```
-3) **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   # opcional: export VITE_API_URL=http://localhost:8000
-   # opcional: export VITE_TRANSLATE_URL=http://localhost:5000
-   npm run dev -- --host --port 3000
-   ```
-
----
-
-## URLs úteis
-- Frontend (Mapa Interativo): http://localhost:3000
-- Backend (Swagger): http://localhost:8000/docs
-- LibreTranslate (EN/PT): http://localhost:5000
-
----
-
-## Serviços e variáveis
-
-### Postgres/PostGIS
-- Imagem: `postgis/postgis:16-3.4`
-- Host (na rede docker): `db:5432`
-- Host (no seu PC): `localhost:5434`
-- Credenciais: user `admin`, senha `admin`, db `history_atlas`.
-
-### Backend
-- Porta: `8000:8000`
-- Variáveis (compose):
-  - `DB_HOST=db`
-  - `DB_PORT=5432`
-  - `DB_NAME=history_atlas`
-  - `DB_USER=admin`
-  - `DB_PASSWORD=admin`
+## 🛠️ Stack Tecnológica
 
 ### Frontend
-- Build args (compose):
-  - `VITE_API_URL=http://localhost:8000`
-- Para tradução:
-  - `VITE_TRANSLATE_URL=http://localhost:5000` (defina no `.env` ou no build arg do Dockerfile, se quiser).
-
-### LibreTranslate
-- Imagem: `libretranslate/libretranslate:latest`
-- Porta: `5000:5000`
-- Idiomas carregados: `LT_LOAD_ONLY=en,pt`
-- Endpoint: `POST /translate` com body `{ q, source, target, format: "text" }`.
-
----
-
-## ETL, Seed e integrações
-
-### Seeder de integrações (`seeder.py`)
-Arquivo: `backend/app/etl/integrations/seeder.py`.
-
-O que faz:
-- Povoa a tabela de integrações suportadas pelo sistema.
-- Define `slug`, `name`, `description`, `logo_url` e `form_schema` (campos que a UI pedirá no modal).
-- Atualiza `form_schema`/`name` se a integração já existir.
-
-Integração pré-definida:
-- **kaggle**
-  - Descrição: Importação de datasets históricos massivos.
-  - Campo exigido: `api_key` (password, placeholder `KGAT_...`).
-
-### Seed local de eventos (`manual_events.json`)
-- Local: `backend/data/manual_events.json`.
-- Disparo: UI → Sidebar → “Obter Dados” → “Restaurar Local”.
-- Restaura um conjunto base de eventos (com coordenadas) no banco.
-
-### Integração Kaggle
-- Configurada via `seeder.py` e exibida nos modais de ETL.
-- Campo solicitado segue o `form_schema` (`api_key`).
-- Depende do token fornecido pelo usuário.
-
-### Wikidata / Gerador (em breve)
-- Suporte a importação via Wikidata (ver `app/services/wikidata_service.py`, `etl/wikidata`).
-- Pode envolver geocodificação remota; em lotes grandes, espere mais latência.
-
-
----
-
-## Tradução no modal de eventos
-- Botões: **Original** e **PT** (toggle).
-- Tradução de nome/descrição/conteúdo usando LibreTranslate, cacheada em `localStorage` por `event_id`.
-- Indicador sutil “PT” ao lado do título quando a versão traduzida está ativa.
-- Tradução é apenas no modal; não há tradução global do mapa/lista para evitar travamentos.
-
----
-
-## Fluxo de uso na UI
-1) **Primeira vez**: abra `Settings` (ou “Configurações”) e carregue/atualize integrações.  
-   - Se desejar Kaggle, insira o API Token (campo `api_key`).  
-   - Se não configurar integrações, você ainda pode usar o seed local JSON.
-2) Na Sidebar, vá em **Obter Dados**:
-   - **Restaurar Local**: carrega `manual_events.json`.
-   - **Gerador (Wikidata)**: importação online (se configurada).
-3) Troque entre **Mapa** e **Lista** no topo da UI.
-4) Clique em um evento para abrir o modal:
-   - Botões **Original** / **PT** para alternar tradução.
-5) Criação manual:
-   - Use o FAB “+” ou clique no mapa (modo adicionar) para definir coordenadas e abrir o modal de criação.
-6) Exclusão:
-   - Só eventos `source=manual` podem ser removidos (o backend bloqueia outros).
-7) Integrações:
-   - Via modais de ETL; os campos exigidos vêm do `form_schema` (ex.: Kaggle).
-
----
-
-## Estrutura de pastas
-
-### Frontend
-```
-frontend/
-|-- components
-|   |-- common
-|   |   |-- PopulateIndicator.jsx
-|   |   |-- SourceBadge.jsx
-|   |-- layout
-|   |   |-- AppNavigation.jsx
-|   |   |-- Header.jsx
-|   |   |-- NavButton.jsx
-|   |   |-- Sidebar.jsx
-|   |-- list
-|   |   |-- ListView.jsx
-|   |-- map
-|   |   |-- FlyTo.jsx
-|   |   |-- MainMap.jsx
-|   |   |-- MapController.jsx
-|   |   |-- MapFix.jsx
-|   |-- modals
-|       |-- ConfirmModal.jsx
-|       |-- ETLModal.jsx
-|       |-- EventModal.jsx
-|       |-- GlobalETLModal.jsx
-|       |-- MinimizableModal.jsx
-|       |-- NotificationModal.jsx
-|       |-- PopulateModal.jsx
-|       |-- SupportModals.jsx
-|-- context
-|   |-- ETLContext.jsx
-|   |-- ToastContext.jsx
-|-- hooks
-|   |-- useEventForm.js
-|   |-- useEvents.js
-|   |-- usePopulate.js
-|   |-- useTheme.js
-|-- pages
-|   |-- MainPage.jsx
-|   |-- SettingsPage.jsx
-|-- services
-|   |-- api.js
-|-- utils
-|   |-- constants.js
-|   |-- formatters.js
-|   |-- mapHelpers.js
-|-- App.jsx
-|-- main.jsx
-|-- useTheme.jsx
-```
+| Tecnologia              | Descrição                                                    |
+|-------------------------|--------------------------------------------------------------|
+| React 18 (Vite)         | Framework principal para SPA de alta performance.            |
+| Tailwind CSS            | Estilização utilitária com suporte nativo a Dark Mode.       |
+| Leaflet & React-Leaflet | Biblioteca de mapas open-source para renderização de clusters. |
+| Lucide React            | Conjunto de ícones vetoriais modernos.                       |
 
 ### Backend
+| Tecnologia               | Descrição                                                    |
+|--------------------------|--------------------------------------------------------------|
+| FastAPI                  | Framework Python assíncrono e tipado.                        |
+| UV                       | Gerenciador de pacotes Python ultra-rápido (substituto do Pip). |
+| SQLAlchemy 2.0           | ORM moderno para interação com o banco.                      |
+| PostgreSQL 16 + PostGIS  | Banco de dados relacional com motor espacial SIG.            |
+
+## 📥 Obter o Código
+Repositório oficial: https://github.com/stolpe22/atlas-historico
+
+- **Clonar via Git**
+```bash
+git clone https://github.com/stolpe22/atlas-historico.git
+cd atlas-historico
 ```
-backend/
-|-- app
-|   |-- etl
-|   |   |-- geonames/
-|   |   |-- integrations/
-|   |   |   |-- seeder.py
-|   |   |-- kaggle/
-|   |   |-- wikidata/
-|   |   |-- base.py
-|   |   |-- registry.py
-|   |-- models/
-|   |-- routes/
-|   |-- services/
-|   |-- utils/
-|   |-- config.py
-|   |-- database.py
-|   |-- main.py
-|   |-- schemas.py
-|-- data
-|   |-- manual_events.json
-|-- scripts
-|   |-- delete_specific.py
-|   |-- populate_massive.py
+
+- **Baixar ZIP**
+  1) Acesse a página do repositório: https://github.com/stolpe22/atlas-historico  
+  2) Clique em **Code** > **Download ZIP**  
+  3) Extraia o arquivo em seu diretório de preferência
+
+## 📦 Instalação e Configuração
+
+### Via Docker (Recomendado)
+A forma mais rápida de subir o ambiente completo (Front, Back, DB e Tradutor).
+
+1. Certifique-se de ter o Docker e Docker Compose instalados.
+2. Na raiz do projeto, escolha um dos caminhos:
+   - **Script de conveniência**
+     ```bash
+     chmod +x run.sh
+     ./run.sh
+     ```
+   - **Comando direto**
+     ```bash
+     docker-compose up --build
+     ```
+3. Acesse as URLs:
+   - Frontend: http://localhost:3000
+   - Backend (Docs): http://localhost:8000/docs
+   - Tradução (LibreTranslate): http://localhost:5000
+
+### Execução Manual (Desenvolvimento)
+Caso deseje rodar os serviços fora do Docker para depuração:
+
+1. **Banco de Dados** — Você precisará de um PostgreSQL com PostGIS ativo.
+```sql
+CREATE DATABASE history_atlas;
+CREATE EXTENSION postgis;
 ```
+
+2. **Backend** — Navegue até a pasta `/backend`:
+```bash
+# Instale o UV se não tiver
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Sincronize dependências e ative venv
+uv sync
+source .venv/bin/activate
+
+# Rode o servidor
+uvicorn app.main:app --reload --port 8000
+```
+
+3. **Frontend** — Navegue até a pasta `/frontend`:
+```bash
+npm install
+npm run dev -- --port 3000
+```
+> Nota: Configure a variável `VITE_API_URL` no seu `.env` se necessário.
+
+## 🧭 Guia do Desenvolvedor: Expandindo o Projeto
+
+### Adicionando Novos Modais de Importação
+Para adicionar uma nova fonte de dados no Frontend, edite `projeto/components/modals/ETLModal.jsx` e adicione à constante `ADAPTER_UI_CONFIG`. O formulário será gerado automaticamente.
+
+### Criando um Novo Adaptador ETL
+1. Crie um novo arquivo em `app/etl/nome_da_api/adapter.py`.
+2. Herde de `BaseEtlAdapter`.
+3. Implemente a lógica de `run`.
+4. Registre no `app/etl/registry.py`.
+
+```python
+# app/etl/exemplo/adapter.py
+from ..base import BaseEtlAdapter
+from ...services.task_manager import task_manager
+
+class ExemploAdapter(BaseEtlAdapter):
+    def run(self, db, task_id, credentials, params):
+        task_manager.log(task_id, "Iniciando processo...")
+        # Lógica de extração aqui
+        return "Sucesso"
+```
+
+## 🗺️ Funcionalidades Principais
+- Filtro Temporal Dinâmico: Explore desde a Pré-História até a Idade Contemporânea usando o Slider de datas.
+- Importação Kaggle: Conecte sua conta do Kaggle e importe datasets massivos de CSV para o banco PostGIS.
+- Geofencing Automático: Utiliza multipolígonos de continentes para identificar automaticamente a região geográfica de qualquer coordenada inserida, garantindo consistência nos filtros.
+- Restauração Local (Seed): Recupere rapidamente os dados básicos ("seed data") do projeto a partir do `manual_events.json`.
+- Geonames Offline: Sincronize milhares de cidades para o seu banco local para garantir geolocalização rápida.
+- Tradução EN/PT: Tradução de conteúdos históricos em tempo real via LibreTranslate.
+
+## 📂 Estrutura de Pastas
+```
+atlas-historico/
+├── backend/
+│   ├── app/
+│   │   ├── etl/            # Adaptadores e lógica de carga (Kaggle, Seed)
+│   │   ├── models/         # Modelos SQLAlchemy e PostGIS (Geometry)
+│   │   ├── routes/         # Endpoints FastAPI
+│   │   └── services/       # TaskManager, EventService
+│   ├── docs/               # Markdown de ajuda servido pela API
+│   └── Dockerfile          # Build com gerenciador UV
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # Componentes React (Map, Modals, Layout)
+│   │   ├── context/        # Gerenciamento de Estado (ETLContext, Toast)
+│   │   ├── hooks/          # Hooks customizados (useEvents, useTheme)
+│   │   └── pages/          # MainPage, SettingsPage
+│   └── Dockerfile          # Build multi-stage Nginx
+├── docker-compose.yaml     # Orquestrador de serviços
+└── run.sh                  # Script de bootstrap (Build + Up)
+```
+
+## 🔐 Variáveis de Ambiente
+O backend utiliza o arquivo `.env` (ou variáveis injetadas via Docker Compose):
+
+| Variável         | Descrição                                 | Padrão                  |
+|------------------|-------------------------------------------|-------------------------|
+| DB_HOST          | Host do banco de dados                    | db (docker) ou localhost |
+| DB_NAME          | Nome do banco                             | history_atlas           |
+| WIKIDATA_TIMEOUT | Timeout para queries SPARQL               | 120                     |
+| QUERY_LIMIT      | Limite de eventos por extração            | 500                     |
+| VITE_API_URL     | URL da API para o Frontend                | http://localhost:8000   |
 
 ---
 
-## Resolução de problemas
-- **Mapa sem pontos / lista vazia**: verifique se seed rodou ou se a integração importou eventos; confirme latitude/longitude nos registros.
-- **Tradução não funciona**: valide `libretranslate` em `http://localhost:5000` e `VITE_TRANSLATE_URL` no frontend.
-- **Conflito de portas**: ajuste no `docker-compose.yml` ou libere 3000/8000/5000/5434.
-- **Compose falhou**: `docker compose logs -f` para inspecionar backend/db; veja healthcheck do Postgres.
-- **ETL lento**: importações Wikidata/geo podem demorar em grandes lotes; monitore modais de população e logs do backend.
-
----
-
-## Referência rápida de comandos
-- Subir tudo: `docker compose up -d --build`
-- Parar tudo: `docker compose down`
-- Logs: `docker compose logs -f`
-- Rebuild só frontend: `docker compose build frontend && docker compose up -d frontend`
-- Script helper: `./run.sh`
+Atlas Histórico — Criado por @stolpe22
