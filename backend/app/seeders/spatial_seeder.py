@@ -68,34 +68,3 @@ def seed_continents(db: Session):
     except Exception as e:
         db.rollback()
         print(f"❌ Erro crítico ao semear continentes: {str(e)}")
-
-
-def detect_continent_from_point(db: Session, lat: float, lon: float):
-    if lat == 0 and lon == 0:
-        return "Desconhecido"
-
-    # Forçamos o uso de float para os parâmetros e garantimos o Schema
-    query = text("""
-        SELECT name FROM settings.continents_shapes
-        WHERE ST_Intersects(
-            geom, 
-            ST_Buffer(ST_SetSRID(ST_Point(CAST(:lon AS FLOAT), CAST(:lat AS FLOAT)), 4326)::geography, 100000)::geometry
-        )
-        ORDER BY geom <-> ST_SetSRID(ST_Point(CAST(:lon AS FLOAT), CAST(:lat AS FLOAT)), 4326)
-        LIMIT 1
-    """)
-    
-    try:
-        # Importante: usar db.execute(query, {...}).mappings().first() ou fetchone()
-        result = db.execute(query, {"lon": float(lon), "lat": float(lat)}).fetchone()
-        
-        if result:
-            return result[0]
-        
-        # Se não achou em 100km, vamos logar para saber qual coordenada está falhando
-        print(f"❓ Ponto sem continente próximo: Lat {lat}, Lon {lon}")
-        return "Desconhecido"
-        
-    except Exception as e:
-        print(f"❌ Erro PostGIS no Python: {e}")
-        return "Desconhecido"

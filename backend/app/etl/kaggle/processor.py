@@ -4,7 +4,7 @@ from sqlalchemy import func, desc, text, and_
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from ...models import KaggleStaging, HistoricalEvent, EventSource, GeonamesCity
-from ...utils.helpers import calculate_period
+from ...utils import calculate_period, get_continent_from_coords
 
 def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, log_callback=None, stop_check_callback=None):
     
@@ -146,22 +146,6 @@ def process_staging_to_events(db: Session, kaggle_id: str, limit: int = 2000, lo
     log(f"🏁 Finalizado! Total: {processed_count}")
     return processed_count
 
-def get_continent_from_point(db, lat, lon):
-    """Busca o continente via interseção espacial no PostGIS."""
-    if lat == 0 and lon == 0:
-        return "Desconhecido"
-        
-    # Importante: settings.continents_shapes indica o schema
-    sql = text("""
-        SELECT name FROM settings.continents_shapes 
-        WHERE ST_Intersects(geom, ST_SetSRID(ST_Point(:lon, :lat), 4326))
-        LIMIT 1
-    """)
-    try:
-        result = db.execute(sql, {"lon": lon, "lat": lat}).fetchone()
-        return result[0] if result else "Outro"
-    except:
-        return "Desconhecido"
 
 def _save_event(db, row, lat, lon, source_label, raw):
     # Jitter para não sobrepor pontos no mesmo lugar
@@ -170,7 +154,7 @@ def _save_event(db, row, lat, lon, source_label, raw):
         lon += random.uniform(-0.01, 0.01)
     
     # 🌟 AQUI ESTÁ A MÁGICA: Detecta continente pelo polígono
-    detected_continent = get_continent_from_point(db, lat, lon)
+    detected_continent = get_continent_from_coords(db, lat, lon)
     
     location_wkt = f"POINT({lon} {lat})"
     name = raw.get("Name of Incident") or raw.get("Event") or "Evento Desconhecido"
