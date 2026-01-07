@@ -1,128 +1,123 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { etlApi } from '../services/api';
 
 const ETLContext = createContext();
+
+export const ETLProvider = ({ children }) => {
+  // 1. Estado Central: { [slug]: { taskId, status, logs, showModal, name } }
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem('atlas_active_tasks');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // 2. Persistência Centralizada
+  useEffect(() => {
+    localStorage.setItem('atlas_active_tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  // 3. Polling Inteligente Unificado
+  useEffect(() => {
+    // Identifica quais slugs precisam de atualização (status inacabado)
+    const activeSlugs = Object.keys(tasks).filter(slug => 
+      ['running', 'pending', 'canceling'].includes(tasks[slug].status)
+    );
+
+    if (activeSlugs.length === 0) return;
+
+    const interval = setInterval(async () => {
+      // Executa o check para cada tarefa ativa em paralelo
+      await Promise.all(activeSlugs.map(async (slug) => {
+        try {
+          const taskData = tasks[slug];
+          const res = await etlApi.getTaskStatus(taskData.taskId);
+          
+          if (res.data) {
+            const { status, logs } = res.data;
+
+            setTasks(prev => ({
+              ...prev,
+              [slug]: { 
+                ...prev[slug], 
+                status: status, 
+                logs: logs || [] 
+              }
+            }));
+
+            // Se a tarefa terminou, o polling para ela para no próximo ciclo
+          }
+        } catch (e) {
+          console.error(`Erro no polling da task [${slug}]:`, e);
+          // Se der 404, a task sumiu do backend, então removemos daqui
+          if (e.response?.status === 404) {
+            removeTask(slug);
+          }
+        }
+      }));
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [tasks]);
+
+  // 4. API do Contexto
+  
+  // Registra ou atualiza uma tarefa no gerenciador
+  const registerTask = useCallback((slug, taskId, config = {}) => {
+    const { showModal = true, name = slug } = config;
+    setTasks(prev => ({
+      ...prev,
+      [slug]: {
+        taskId,
+        name,
+        showModal,
+        status: 'running',
+        logs: ['🚀 Inicializando...']
+      }
+    }));
+  }, []);
+
+  // Remove uma tarefa (limpa estado e localStorage)
+  const removeTask = useCallback((slug) => {
+    setTasks(prev => {
+      const newTasks = { ...prev };
+      delete newTasks[slug];
+      return newTasks;
+    });
+  }, []);
+
+  // Para uma tarefa em execução
+  const stopTask = useCallback(async (slug) => {
+    const task = tasks[slug];
+    if (task && task.taskId) {
+      try {
+        await etlApi.stopTask(task.taskId);
+        setTasks(prev => ({
+          ...prev,
+          [slug]: { ...prev[slug], status: 'canceling' }
+        }));
+      } catch (e) {
+        console.error("Erro ao parar task:", e);
+      }
+    }
+  }, [tasks]);
+
+  // Helper para facilitar a vida das páginas: busca uma task por slug
+  const getTask = (slug) => tasks[slug] || null;
+
+  return (
+    <ETLContext.Provider value={{ 
+      tasks, 
+      registerTask, 
+      removeTask, 
+      stopTask, 
+      getTask 
+    }}>
+      {children}
+    </ETLContext.Provider>
+  );
+};
 
 export const useETL = () => {
   const context = useContext(ETLContext);
   if (!context) throw new Error('useETL deve ser usado dentro de um ETLProvider');
   return context;
-};
-
-export const ETLProvider = ({ children }) => {
-  // 1. Inicialização Persistente: Verifica se já existe uma tarefa ativa
-  const [taskId, setTaskId] = useState(() => localStorage.getItem('atlas_etl_task_id'));
-  const [integrationSlug, setIntegrationSlug] = useState(() => localStorage.getItem('atlas_etl_slug') || 'kaggle');
-  
-  // ✅ O SEGREDO: Se tem taskId, o modal já começa aberto (isOpen: true)
-  const [isOpen, setIsOpen] = useState(() => !!localStorage.getItem('atlas_etl_task_id'));
-  
-  const [status, setStatus] = useState('ready'); 
-  const [logs, setLogs] = useState([]);
-  const [progressTrigger, setProgressTrigger] = useState(0);
-
-  // 2. Sincroniza LocalStorage
-  useEffect(() => {
-    if (taskId) {
-      localStorage.setItem('atlas_etl_task_id', taskId);
-      localStorage.setItem('atlas_etl_slug', integrationSlug);
-    } else {
-      localStorage.removeItem('atlas_etl_task_id');
-      localStorage.removeItem('atlas_etl_slug');
-    }
-  }, [taskId, integrationSlug]);
-
-  // 3. Polling Robusto
-  useEffect(() => {
-    let interval;
-    
-    // Só inicia o polling se houver tarefa e não tiver terminado
-    if (taskId && status !== 'completed' && status !== 'error' && status !== 'cancelled') {
-      setStatus('running'); 
-      
-      interval = setInterval(async () => {
-        try {
-          const res = await etlApi.getTaskStatus(taskId);
-          
-          if (res.data) {
-            setLogs(res.data.logs || []);
-            
-            // Avisa o mapa se novos logs (eventos) chegaram
-            if (res.data.logs && res.data.logs.length > logs.length) {
-                setProgressTrigger(prev => prev + 1);
-            }
-
-            if (res.data.status === 'completed') {
-              setStatus('completed');
-              setProgressTrigger(prev => prev + 1);
-              clearInterval(interval);
-            } else if (res.data.status === 'error' || res.data.status === 'cancelled') {
-              setStatus(res.data.status);
-              clearInterval(interval);
-            }
-          }
-        } catch (e) {
-          console.error("Erro polling ETL:", e);
-          // Se o servidor disser que a task não existe (404), limpa tudo
-          if (e.response?.status === 404) {
-            setTaskId(null);
-            setIsOpen(false);
-          }
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [taskId, status]);
-
-  const startETL = async (slug, params) => {
-    try {
-      setStatus('running');
-      setLogs(['🚀 Iniciando solicitação...']);
-      setIntegrationSlug(slug);
-      
-      const res = await etlApi.runIntegration(slug, params);
-      setTaskId(res.data.task_id);
-      setIsOpen(true); // Abre o modal ao iniciar
-    } catch (e) {
-      const msg = e.response?.data?.detail || e.message;
-      setLogs(l => [...l, `❌ Erro ao iniciar: ${msg}`]);
-      setStatus('error');
-      setIsOpen(true);
-    }
-  };
-
-  const stopETL = async () => {
-    if (taskId) {
-      try { 
-        await etlApi.stopTask(taskId); 
-        setStatus('cancelled');
-      } catch(e) {}
-    }
-  };
-
-  const closeWindow = () => {
-    // Se terminou ou deu erro, podemos limpar a tarefa do storage
-    if (status === 'completed' || status === 'error' || status === 'cancelled') {
-      setTaskId(null);
-      setLogs([]);
-      setStatus('ready');
-      setIsOpen(false);
-    } else {
-      // Se ainda estiver rodando, apenas MINIMIZA (não fecha de verdade)
-      // Para isso o MinimizableModal já cuida do estado interno dele, 
-      // mas se você quiser fechar a janela e deixar rodando no fundo:
-      setIsOpen(false);
-    }
-  };
-
-  return (
-    <ETLContext.Provider value={{
-      taskId, integrationSlug, status, logs, isOpen, progressTrigger,
-      startETL, stopETL, closeWindow, 
-      openWindow: () => setIsOpen(true)
-    }}>
-      {children}
-    </ETLContext.Provider>
-  );
 };
